@@ -1,0 +1,20 @@
+{
+    "name": "coingate/merchant",
+    "description": "Bitcoin integration for Magento 2 via CoinGate",
+    "type": "magento2-module",
+    "version": "dev-master",
+    "license": [
+        "OSL-3.0"
+    ],
+    "require": {
+        "coingate/coingate-php": "*"
+    },
+    "extra": {
+        "map": [
+            [
+                "*",
+                "CoinGate/Merchant"
+            ]
+        ]
+    }
+}
