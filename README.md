@@ -14,7 +14,7 @@ You can sign up for CoinGate account at <https://coingate.com> for production an
 
     ```bash
     composer config repositories.coingatemerchant git https://github.com/coingate/magento2-plugin.git
-    composer require coingate/merchant:dev-master
+    composer require coingate/merchant
     ```
    Wait while dependencies are updated.
 
