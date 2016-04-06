@@ -13,8 +13,7 @@ You can install Magento 2 CoinGate plugin via [Composer](http://getcomposer.org/
 2. Enter following commands to install plugin:
 
     ```bash
-    composer config repositories.coingatemerchant git https://github.com/coingate/magento2-plugin.git
-    composer require coingate/merchant
+    composer require coingate/magento2-plugin
     ```
    Wait while dependencies are updated.
 
