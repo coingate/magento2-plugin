@@ -1,5 +1,5 @@
 {
-    "name": "coingate/merchant",
+    "name": "coingate/magento2-plugin",
     "type": "magento2-module",
     "description": "Bitcoin integration for Magento 2 via CoinGate",
     "keywords": [
