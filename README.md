@@ -2,15 +2,15 @@
 
 CoinGate bitcoin payment gateway Magento 2 plugin.
 
-## Install
-
 You can sign up for CoinGate account at <https://coingate.com> for production and <https://sandbox.coingate.com> for testing (sandbox) environment.
 
-### via composer
+## Install via Composer
 
-1. Go to your Magento 2 root folder
+You can install Magento 2 CoinGate plugin via [Composer](http://getcomposer.org/). Run the following command in your terminal:
 
-2. Enter following commands to install module:
+1. Go to your Magento 2 root folder.
+
+2. Enter following commands to install plugin:
 
     ```bash
     composer config repositories.coingatemerchant git https://github.com/coingate/magento2-plugin.git
@@ -18,11 +18,11 @@ You can sign up for CoinGate account at <https://coingate.com> for production an
     ```
    Wait while dependencies are updated.
 
-3. Enter following commands to enable module:
+3. Enter following commands to enable plugin:
 
     ```bash
     php bin/magento module:enable CoinGate_Merchant --clear-static-content
     php bin/magento setup:upgrade
     ```
 
-5. Enable and configure CoinGate in Magento Admin under `Stores / Configuretion / Payment Methods / CoinGate`
+4. Enable and configure CoinGate plugin in Magento Admin under `Stores / Configuretion / Payment Methods / CoinGate`.
