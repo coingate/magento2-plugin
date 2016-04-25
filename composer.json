@@ -27,5 +27,11 @@
                 "CoinGate/Merchant"
             ]
         ]
+    },
+    "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+            "CoinGate\\Merchant\\": ""
+        }
     }
 }
