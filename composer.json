@@ -20,14 +20,6 @@
     "require": {
         "coingate/coingate-php": "*"
     },
-    "extra": {
-        "map": [
-            [
-                "*",
-                "CoinGate/Merchant"
-            ]
-        ]
-    },
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4": {
