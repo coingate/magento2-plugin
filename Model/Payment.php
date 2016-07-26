@@ -31,7 +31,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Payment extends AbstractMethod
 {
-    const COINGATE_MAGENTO_VERSION = '1.0.2';
+    const COINGATE_MAGENTO_VERSION = '1.0.3';
     const CODE = 'coingate_merchant';
 
     protected $_code = 'coingate_merchant';
