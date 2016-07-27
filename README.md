@@ -24,4 +24,4 @@ You can install Magento 2 CoinGate plugin via [Composer](http://getcomposer.org/
     php bin/magento setup:upgrade
     ```
 
-4. Enable and configure CoinGate plugin in Magento Admin under `Stores / Configuration / Payment Methods / CoinGate`.
+4. Enable and configure CoinGate plugin in Magento Admin under `Stores / Configuration / Sales / Payment Methods / CoinGate`.
