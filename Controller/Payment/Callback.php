@@ -45,7 +45,9 @@ class Callback extends Action
      */
     public function execute()
     {
-        $order = $this->order->loadByIncrementId($_REQUEST['order_id']);
+        $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
+
+        $order = $this->order->loadByIncrementId($request_order_id);
         $this->coingatePayment->validateCoinGateCallback($order);
 
         $this->getResponse()->setBody('OK');

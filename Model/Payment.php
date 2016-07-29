@@ -153,21 +153,25 @@ class Payment extends AbstractMethod
     {
         try {
             if (!$order || !$order->getIncrementId()) {
-                throw new \Exception('Order #' . $_REQUEST['order_id'] . ' does not exists');
+                $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
+
+                throw new \Exception('Order #' . $request_order_id . ' does not exists');
             }
 
             $payment = $order->getPayment();
-            $token1 = isset($_GET['token']) ? $_GET['token'] : '';
+            $get_token = filter_input(INPUT_GET, 'order_id');
+            $token1 = isset($get_token) ? $get_token : '';
             $token2 = $payment->getAdditionalInformation('coingate_order_token');
 
             if ($token2 == '' || $token1 != $token2) {
                 throw new \Exception('Tokens do match.');
             }
 
-            $this->coingate->getOrder($_REQUEST['id']);
+            $request_id = (filter_input(INPUT_POST, 'id') ? filter_input(INPUT_POST, 'id') : filter_input(INPUT_GET, 'id'));
+            $this->coingate->getOrder($request_id);
 
             if (!$this->coingate->success) {
-                throw new \Exception('CoinGate Order #' . $_REQUEST['id'] . ' does not exist');
+                throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
             }
 
             if (!is_array($this->coingate->response)) {
