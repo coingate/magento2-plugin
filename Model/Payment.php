@@ -159,8 +159,8 @@ class Payment extends AbstractMethod
             }
 
             $payment = $order->getPayment();
-            $get_token = filter_input(INPUT_GET, 'order_id');
-            $token1 = isset($get_token) ? $get_token : '';
+            $get_token = filter_input(INPUT_GET, 'token');
+            $token1 = $get_token ? $get_token : '';
             $token2 = $payment->getAdditionalInformation('coingate_order_token');
 
             if ($token2 == '' || $token1 != $token2) {
