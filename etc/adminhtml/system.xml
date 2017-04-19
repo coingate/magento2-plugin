@@ -16,7 +16,7 @@
             <group id="coingate_merchant" translate="label" type="text" sortOrder="88" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Bitcoin via CoinGate</label>
                 <comment>
-                    <![CDATA[<a href="https://coingate.com/" target="_blank">Click here to sign up for CoinGate account.</a>]]>
+                    <![CDATA[Not working? <a href="https://developer.coingate.com/docs/issues" target="_blank">View common issues</a> or contact <a href="mailto:support@coingate.com">support@coingate.com</a>]]>
                 </comment>
                 <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enabled</label>
@@ -36,12 +36,14 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
                 <field id="receive_currency" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Currency you want to receive</label>
+                    <label>Receive Currency</label>
                     <source_model>CoinGate\Merchant\Model\Source\Receivecurrencies</source_model>
+                    <comment>Currency you want to receive when making withdrawal at CoinGate. Please take a note what if you choose EUR or USD you will be asked to verify your business before making a withdrawal at CoinGate.</comment>
                 </field>
                 <field id="sandbox_mode" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sandbox Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Please note, that for Sandbox mode you must generate separate API credentials on sandbox.coingate.com. API credentials generated on coingate.com will not work for Sandbox mode.</comment>
                 </field>
                 <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sort Order</label>
