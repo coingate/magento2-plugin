@@ -5,7 +5,7 @@
  * @package     CoinGate_Merchant
  * @author      CoinGate
  * @copyright   CoinGate (https://coingate.com)
- * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
  */
  /*browser:true*/
  /*global define*/

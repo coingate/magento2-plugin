@@ -10,7 +10,7 @@
       "magento"
     ],
     "homepage": "https://coingate.com",
-    "license": "OSL-3.0",
+    "license": "MIT",
     "authors": [
         {
             "name": "CoinGate and contributors",
