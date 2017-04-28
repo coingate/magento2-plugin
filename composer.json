@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "coingate/coingate-php": "1.*"
+        "coingate/coingate-php": "2.*"
     },
     "autoload": {
         "files": [ "registration.php" ],
