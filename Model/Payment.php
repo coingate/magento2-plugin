@@ -10,6 +10,7 @@
  */
 namespace CoinGate\Merchant\Model;
 
+use CoinGate\CoinGate;
 use CoinGate\Merchant as CoinGateMerchant;
 use Magento\Directory\Model\CountryFactory;
 use Magento\Framework\Api\AttributeValueFactory;
@@ -94,11 +95,11 @@ class Payment extends AbstractMethod
         $this->coingate = $coingate;
         $this->storeManager = $storeManager;
 
-        $this->coingate->initialize(array(
+        \CoinGate\CoinGate::config(array(
             'app_id' => $this->getConfigData('app_id'),
             'api_key' => $this->getConfigData('api_key'),
             'api_secret' => $this->getConfigData('api_secret'),
-            'mode' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
+            'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
             'user_agent' => 'CoinGate - Magento 2 Extension v' . self::COINGATE_MAGENTO_VERSION
         ));
     }
@@ -132,12 +133,12 @@ class Payment extends AbstractMethod
             'description' => join($description, ', ')
         );
 
-        $this->coingate->createOrder($params);
+        $cgOrder = \CoinGate\Merchant\Order::create($params);
 
-        if ($this->coingate->success) {
+        if ($cgOrder) {
             return array(
                 'status' => true,
-                'payment_url' => $this->coingate->response['payment_url']
+                'payment_url' => $cgOrder->payment_url
             );
         } else {
             return array(
@@ -168,28 +169,25 @@ class Payment extends AbstractMethod
             }
 
             $request_id = (filter_input(INPUT_POST, 'id') ? filter_input(INPUT_POST, 'id') : filter_input(INPUT_GET, 'id'));
-            $this->coingate->getOrder($request_id);
+            $cgOrder = \CoinGate\Merchant\Order::find($request_id);
 
-            if (!$this->coingate->success) {
+            if (!$cgOrder) {
                 throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
             }
 
-            if (!is_array($this->coingate->response)) {
-                throw new \Exception('Something wrong with callback');
-            }
-
-            if ($this->coingate->response['status'] == 'paid') {
+            if ($cgOrder->status == 'paid') {
                 $order
                     ->setState(Order::STATE_PROCESSING, TRUE)
                     ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING))
                     ->save();
-            } elseif (in_array($this->coingate->response['status'], array('invalid', 'expired', 'canceled'))) {
+            } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled'))) {
                 $order
                     ->setState(Order::STATE_CANCELED, TRUE)
                     ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
                     ->save();
             }
         } catch (\Exception $e) {
+            $logger->exception($e);
             exit('Error occurred: ' . $e);
         }
     }
