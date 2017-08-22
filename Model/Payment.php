@@ -76,8 +76,7 @@ class Payment extends AbstractMethod
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = array()
-    )
-    {
+    ) {
         parent::__construct(
             $context,
             $registry,
@@ -150,45 +149,44 @@ class Payment extends AbstractMethod
     /**
      * @param Order $order
      */
-    public function validateCoinGateCallback(Order $order)
-    {
-        try {
-            if (!$order || !$order->getIncrementId()) {
-                $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
+     public function validateCoinGateCallback(Order $order)
+     {
+         try {
+             if (!$order || !$order->getIncrementId()) {
+                 $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
 
-                throw new \Exception('Order #' . $request_order_id . ' does not exists');
-            }
+                 throw new \Exception('Order #' . $request_order_id . ' does not exists');
+             }
 
-            $payment = $order->getPayment();
-            $get_token = filter_input(INPUT_GET, 'token');
-            $token1 = $get_token ? $get_token : '';
-            $token2 = $payment->getAdditionalInformation('coingate_order_token');
+             $payment = $order->getPayment();
+             $get_token = filter_input(INPUT_GET, 'token');
+             $token1 = $get_token ? $get_token : '';
+             $token2 = $payment->getAdditionalInformation('coingate_order_token');
 
-            if ($token2 == '' || $token1 != $token2) {
-                throw new \Exception('Tokens do match.');
-            }
+             if ($token2 == '' || $token1 != $token2) {
+                 throw new \Exception('Tokens do match.');
+             }
 
-            $request_id = (filter_input(INPUT_POST, 'id') ? filter_input(INPUT_POST, 'id') : filter_input(INPUT_GET, 'id'));
-            $cgOrder = \CoinGate\Merchant\Order::find($request_id);
+             $request_id = (filter_input(INPUT_POST, 'id') ? filter_input(INPUT_POST, 'id') :  filter_input(INPUT_GET, 'id'));
+             $cgOrder = \CoinGate\Merchant\Order::find($request_id);
 
-            if (!$cgOrder) {
-                throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
-            }
+             if (!$cgOrder) {
+                 throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
+             }
 
-            if ($cgOrder->status == 'paid') {
-                $order
-                    ->setState(Order::STATE_PROCESSING, TRUE)
-                    ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING))
-                    ->save();
-            } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled'))) {
-                $order
-                    ->setState(Order::STATE_CANCELED, TRUE)
-                    ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
-                    ->save();
-            }
-        } catch (\Exception $e) {
-            $logger->exception($e);
-            exit('Error occurred: ' . $e);
-        }
-    }
+             if ($cgOrder->status == 'paid') {
+                 $order->setState(Order::STATE_PROCESSING);
+                 $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
+                 $order->save();
+             } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled'))) {
+                 $order
+                     ->setState(Order::STATE_CANCELED, TRUE)
+                     ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
+                     ->save();
+             }
+         } catch (\Exception $e) {
+             $this->_logger->error($e);
+             exit("Error occured: " . $e->getMessage());
+         }
+     }
 }
