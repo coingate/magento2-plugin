@@ -186,7 +186,6 @@ class Payment extends AbstractMethod
              }
          } catch (\Exception $e) {
              $this->_logger->error($e);
-             exit("Error occured: " . $e->getMessage());
          }
      }
 }
