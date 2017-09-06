@@ -18,7 +18,7 @@
                 <model>CoinGate\Merchant\Model\Payment</model>
                 <order_status>pending_payment</order_status>
                 <payment_action>authorize_capture</payment_action>
-                <title>Bitcoin via CoinGate</title>
+                <title>Bitcoin & Altcoins via CoinGate</title>
                 <api_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
             </coingate_merchant>
         </payment>
