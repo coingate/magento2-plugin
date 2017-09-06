@@ -42,4 +42,4 @@ You can install Magento 2 CoinGate plugin via [Composer](http://getcomposer.org/
 
 ## Plugin Configuration
 
-Enable and configure CoinGate plugin in Magento Admin under `Stores / Configuration / Sales / Payment Methods / Bitcoin & Altcoins via CoinGate`.
+Enable and configure CoinGate plugin in Magento Admin under `Stores / Configuration / Sales / Payment Methods / Bitcoin and Altcoins via CoinGate`.
