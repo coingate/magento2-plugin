@@ -14,7 +14,7 @@
     <system>
         <section id="payment">
             <group id="coingate_merchant" translate="label" type="text" sortOrder="88" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Bitcoin & Altcoins via CoinGate</label>
+                <label>Bitcoin and Altcoins via CoinGate</label>
                 <comment>
                     <![CDATA[Not working? <a href="https://developer.coingate.com/docs/issues" target="_blank">View common issues</a> or contact <a href="mailto:support@coingate.com">support@coingate.com</a>]]>
                 </comment>
