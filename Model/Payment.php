@@ -178,7 +178,7 @@ class Payment extends AbstractMethod
                  $order->setState(Order::STATE_PROCESSING);
                  $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
                  $order->save();
-             } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled'))) {
+             } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled', 'refunded'))) {
                  $order
                      ->setState(Order::STATE_CANCELED, TRUE)
                      ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
