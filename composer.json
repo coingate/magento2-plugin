@@ -2,7 +2,7 @@
     "name": "coingate/magento2-plugin",
     "type": "magento2-module",
     "description": "Bitcoin integration for Magento 2 via CoinGate",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "keywords": [
       "coingate",
       "bitcoin",
@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "coingate/coingate-php": "2.*"
+        "coingate/coingate-php": "3.*"
     },
     "autoload": {
         "files": [ "registration.php" ],

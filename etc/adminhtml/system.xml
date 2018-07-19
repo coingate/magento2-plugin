@@ -25,15 +25,8 @@
                 <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Title</label>
                 </field>
-                <field id="app_id" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>App ID</label>
-                </field>
-                <field id="api_key" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>API Key</label>
-                </field>
-                <field id="api_secret" translate="label" type="obscure" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>API Secret</label>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                <field id="api_auth_token" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>API Auth Token</label>
                 </field>
                 <field id="receive_currency" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Receive Currency</label>

@@ -32,7 +32,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Payment extends AbstractMethod
 {
-    const COINGATE_MAGENTO_VERSION = '1.0.7';
+    const COINGATE_MAGENTO_VERSION = '1.0.7-dev';
     const CODE = 'coingate_merchant';
 
     protected $_code = 'coingate_merchant';
@@ -95,11 +95,9 @@ class Payment extends AbstractMethod
         $this->storeManager = $storeManager;
 
         \CoinGate\CoinGate::config(array(
-            'app_id' => $this->getConfigData('app_id'),
-            'api_key' => $this->getConfigData('api_key'),
-            'api_secret' => $this->getConfigData('api_secret'),
             'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
-            'user_agent' => 'CoinGate - Magento 2 Extension v' . self::COINGATE_MAGENTO_VERSION
+            'auth_token'  => $this->getConfigData('api_auth_token'),
+            'user_agent'  => 'CoinGate - Magento 2 Extension v' . self::COINGATE_MAGENTO_VERSION
         ));
     }
 
@@ -122,8 +120,8 @@ class Payment extends AbstractMethod
 
         $params = array(
             'order_id' => $order->getIncrementId(),
-            'price' => number_format($order->getGrandTotal(), 2, '.', ''),
-            'currency' => $order->getOrderCurrencyCode(),
+            'price_amount' => number_format($order->getGrandTotal(), 2, '.', ''),
+            'price_currency' => $order->getOrderCurrencyCode(),
             'receive_currency' => $this->getConfigData('receive_currency'),
             'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') . '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
             'cancel_url' => $this->urlBuilder->getUrl('checkout/onepage/failure'),
