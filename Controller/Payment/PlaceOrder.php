@@ -33,8 +33,8 @@ class PlaceOrder extends Action
         OrderFactory $orderFactory,
         Session $checkoutSession,
         CoinGatePayment $coingatePayment
-    )
-    {
+    ) {
+    
         parent::__construct($context);
 
         $this->orderFactory = $orderFactory;
@@ -49,16 +49,14 @@ class PlaceOrder extends Action
         $order = $this->orderFactory->create()->load($id);
 
         if (!$order->getIncrementId()) {
-            $this->getResponse()->setBody(json_encode(array(
+            $this->getResponse()->setBody(json_encode([
                 'status' => false,
                 'reason' => 'Order Not Found',
-            )));
+            ]));
 
             return;
         }
 
         $this->getResponse()->setBody(json_encode($this->coingatePayment->getCoinGateRequest($order)));
-
-        return;
     }
 }
