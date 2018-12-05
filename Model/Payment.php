@@ -75,7 +75,7 @@ class Payment extends AbstractMethod
         StoreManagerInterface $storeManager,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
-        array $data = array()
+        array $data = []
     ) {
         parent::__construct(
             $context,
@@ -94,11 +94,11 @@ class Payment extends AbstractMethod
         $this->coingate = $coingate;
         $this->storeManager = $storeManager;
 
-        \CoinGate\CoinGate::config(array(
+        \CoinGate\CoinGate::config([
             'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
             'auth_token'  => $this->getConfigData('api_auth_token'),
             'user_agent'  => 'CoinGate - Magento 2 Extension v' . self::COINGATE_MAGENTO_VERSION
-        ));
+        ]);
     }
 
     /**
@@ -113,77 +113,82 @@ class Payment extends AbstractMethod
         $payment->setAdditionalInformation('coingate_order_token', $token);
         $payment->save();
 
-        $description = array();
+        $description = [];
         foreach ($order->getAllItems() as $item) {
             $description[] = number_format($item->getQtyOrdered(), 0) . ' × ' . $item->getName();
         }
 
-        $params = array(
+        $params = [
             'order_id' => $order->getIncrementId(),
             'price_amount' => number_format($order->getGrandTotal(), 2, '.', ''),
             'price_currency' => $order->getOrderCurrencyCode(),
             'receive_currency' => $this->getConfigData('receive_currency'),
-            'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') . '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
+            'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') .
+                '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
             'cancel_url' => $this->urlBuilder->getUrl('checkout/onepage/failure'),
             'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
             'title' => $this->storeManager->getWebsite()->getName(),
             'description' => join($description, ', ')
-        );
+        ];
 
         $cgOrder = \CoinGate\Merchant\Order::create($params);
 
         if ($cgOrder) {
-            return array(
+            return [
                 'status' => true,
                 'payment_url' => $cgOrder->payment_url
-            );
+            ];
         } else {
-            return array(
+            return [
                 'status' => false
-            );
+            ];
         }
     }
 
     /**
      * @param Order $order
      */
-     public function validateCoinGateCallback(Order $order)
-     {
-         try {
-             if (!$order || !$order->getIncrementId()) {
-                 $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
+    public function validateCoinGateCallback(Order $order)
+    {
 
-                 throw new \Exception('Order #' . $request_order_id . ' does not exists');
-             }
+        try {
+            if (!$order || !$order->getIncrementId()) {
+                $request_order_id = (filter_input(INPUT_POST, 'order_id')
+                    ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id')
+                );
 
-             $payment = $order->getPayment();
-             $get_token = filter_input(INPUT_GET, 'token');
-             $token1 = $get_token ? $get_token : '';
-             $token2 = $payment->getAdditionalInformation('coingate_order_token');
+                throw new \Exception('Order #' . $request_order_id . ' does not exists');
+            }
 
-             if ($token2 == '' || $token1 != $token2) {
-                 throw new \Exception('Tokens do match.');
-             }
+            $payment = $order->getPayment();
+            $get_token = filter_input(INPUT_GET, 'token');
+            $token1 = $get_token ? $get_token : '';
+            $token2 = $payment->getAdditionalInformation('coingate_order_token');
 
-             $request_id = (filter_input(INPUT_POST, 'id') ? filter_input(INPUT_POST, 'id') :  filter_input(INPUT_GET, 'id'));
-             $cgOrder = \CoinGate\Merchant\Order::find($request_id);
+            if ($token2 == '' || $token1 != $token2) {
+                throw new \Exception('Tokens do match.');
+            }
 
-             if (!$cgOrder) {
-                 throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
-             }
+            $request_id = (filter_input(INPUT_POST, 'id')
+                ? filter_input(INPUT_POST, 'id') :  filter_input(INPUT_GET, 'id'));
+            $cgOrder = \CoinGate\Merchant\Order::find($request_id);
 
-             if ($cgOrder->status == 'paid') {
-                 $order->setState(Order::STATE_PROCESSING);
-                 $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
-                 $order->save();
-             } elseif (in_array($cgOrder->status, array('invalid', 'expired', 'canceled', 'refunded'))) {
-                 $order
-                     ->setState(Order::STATE_CANCELED, TRUE)
-                     ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
-                     ->save();
-             }
-         } catch (\Exception $e) {
-             $this->_logger->error($e);
-         }
-     }
+            if (!$cgOrder) {
+                throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
+            }
+
+            if ($cgOrder->status == 'paid') {
+                $order->setState(Order::STATE_PROCESSING);
+                $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
+                $order->save();
+            } elseif (in_array($cgOrder->status, ['invalid', 'expired', 'canceled', 'refunded'])) {
+                $order
+                   ->setState(Order::STATE_CANCELED, true)
+                   ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
+                   ->save();
+            }
+        } catch (\Exception $e) {
+            $this->_logger->error($e);
+        }
+    }
 }

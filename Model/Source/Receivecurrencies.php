@@ -15,12 +15,13 @@ class Receivecurrencies
     /**
      * @return array
      */
-     public function toOptionArray()
-     {
-         return array(
-            array('value' => 'btc', 'label' => 'Bitcoin (฿)'),
-            array('value' => 'eur', 'label' => 'Euros (€)'),
-            array('value' => 'usd', 'label' => 'US Dollars ($)'),
-            array('value' => 'DO_NOT_CONVERT', 'label' => 'Do not convert')
-         );
-     }}
+    public function toOptionArray()
+    {
+        return [
+          ['value' => 'btc', 'label' => 'Bitcoin (฿)'],
+          ['value' => 'eur', 'label' => 'Euros (€)'],
+          ['value' => 'usd', 'label' => 'US Dollars ($)'],
+          ['value' => 'DO_NOT_CONVERT', 'label' => 'Do not convert']
+        ];
+    }
+}

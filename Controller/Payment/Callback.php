@@ -30,8 +30,8 @@ class Callback extends Action
         Context $context,
         Order $order,
         CoinGatePayment $coingatePayment
-    )
-    {
+    ) {
+
         parent::__construct($context);
 
         $this->order = $order;
@@ -45,7 +45,8 @@ class Callback extends Action
      */
     public function execute()
     {
-        $request_order_id = (filter_input(INPUT_POST, 'order_id') ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
+        $request_order_id = (filter_input(INPUT_POST, 'order_id')
+            ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id'));
 
         $order = $this->order->loadByIncrementId($request_order_id);
         $this->coingatePayment->validateCoinGateCallback($order);
