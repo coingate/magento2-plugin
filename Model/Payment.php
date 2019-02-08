@@ -76,6 +76,7 @@ class Payment extends AbstractMethod
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
+
     ) {
         parent::__construct(
             $context,
@@ -125,7 +126,7 @@ class Payment extends AbstractMethod
             'receive_currency' => $this->getConfigData('receive_currency'),
             'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') .
                 '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
-            'cancel_url' => $this->urlBuilder->getUrl('checkout/onepage/failure'),
+            'cancel_url' => $this->urlBuilder->getUrl('checkout/cart'),
             'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
             'title' => $this->storeManager->getWebsite()->getName(),
             'description' => join($description, ', ')

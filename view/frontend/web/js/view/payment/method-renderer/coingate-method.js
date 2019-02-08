@@ -31,12 +31,39 @@
      url) {
      'use strict';
 
+
      return Component.extend({
          defaults: {
              template: 'CoinGate_Merchant/payment/coingate-form'
          },
 
          placeOrder: function (data, event) {
+
+             var test = $.ajax({
+
+                 url: url.build('coingate/payment/testConnection'),
+                 type: 'POST',
+                 async: false,
+                 dataType: 'json'
+             });
+
+            var result = null;
+
+             test.done(function (response)  {
+
+                 if (response.status === false) {
+
+                     alert(response.reason + "\n Please contract merchant");
+                     location.reload();
+                     result = false;
+                 }
+             });
+
+            if (result === false){
+
+                return false;
+            }
+
              if (event) {
                  event.preventDefault();
              }
@@ -61,26 +88,31 @@
          },
 
          selectPaymentMethod: function() {
+
              selectPaymentMethodAction(this.getData());
              checkoutData.setSelectedPaymentMethod(this.item.method);
              return true;
          },
 
          afterPlaceOrder: function (quoteId) {
-           var request = $.ajax({
-             url: url.build('coingate/payment/placeOrder'),
-             type: 'POST',
-             dataType: 'json',
-             data: {quote_id: quoteId}
-           });
 
-           request.done(function(response) {
-             if (response.status) {
-               window.location.replace(response.payment_url);
-             } else {
-               window.location.replace('/checkout/onepage/failure');
-             }
-           });
+             var request = $.ajax({
+                 url: url.build('coingate/payment/placeOrder'),
+                 type: 'POST',
+                 dataType: 'json',
+                 data: {quote_id: quoteId}
+             });
+
+             request.done(function(response) {
+
+                 if (response.status) {
+                     window.location.replace(response.payment_url);
+                 } else {
+
+                     window.location.replace('checkout/cart');
+
+                 }
+             });
          }
      });
    }

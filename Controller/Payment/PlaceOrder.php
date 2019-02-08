@@ -15,12 +15,14 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Sales\Model\OrderFactory;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 class PlaceOrder extends Action
 {
     protected $orderFactory;
     protected $coingatePayment;
     protected $checkoutSession;
+    protected $scopeConfig;
 
     /**
      * @param Context $context
@@ -32,7 +34,8 @@ class PlaceOrder extends Action
         Context $context,
         OrderFactory $orderFactory,
         Session $checkoutSession,
-        CoinGatePayment $coingatePayment
+        CoinGatePayment $coingatePayment,
+        ScopeConfigInterface $scopeConfig
     ) {
     
         parent::__construct($context);
@@ -40,23 +43,24 @@ class PlaceOrder extends Action
         $this->orderFactory = $orderFactory;
         $this->coingatePayment = $coingatePayment;
         $this->checkoutSession = $checkoutSession;
+        $this->scopeConfig = $scopeConfig;
     }
 
     public function execute()
     {
         $id = $this->checkoutSession->getLastOrderId();
 
-        $order = $this->orderFactory->create()->load($id);
+       $order = $this->orderFactory->create()->load($id);
 
         if (!$order->getIncrementId()) {
             $this->getResponse()->setBody(json_encode([
                 'status' => false,
                 'reason' => 'Order Not Found',
             ]));
-
             return;
         }
 
         $this->getResponse()->setBody(json_encode($this->coingatePayment->getCoinGateRequest($order)));
     }
+
 }
