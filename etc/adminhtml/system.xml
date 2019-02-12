@@ -26,7 +26,7 @@
                     <label>Title</label>
                 </field>
                 <field id="api_auth_token" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>API Auth Token</labe>
+                    <label>API Auth Token</label>
                 </field>
                 <field id="receive_currency" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Receive Currency</label>
