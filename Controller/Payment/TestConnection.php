@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: vilius
- * Date: 2/5/19
- * Time: 3:43 PM
- */
 
 namespace CoinGate\Merchant\Controller\Payment;
 
