@@ -1,13 +1,23 @@
 {
     "name": "coingate/magento2-plugin",
     "type": "magento2-module",
-    "description": "Bitcoin integration for Magento 2 via CoinGate",
-    "version": "1.0.9",
+    "description": "Bitcoin and Altcoin Payment Gateway for Magento 2 via CoinGate",
+    "version": "1.1.0",
     "keywords": [
       "coingate",
       "bitcoin",
       "merchant",
-      "magento"
+      "magento",
+      "btc",
+      "ethereum",
+      "litecoin",
+      "eth",
+      "ltc",
+      "ripple",
+      "xrp",
+      "payment",
+      "altcoin",
+      "altcoins"
     ],
     "homepage": "https://coingate.com",
     "license": "MIT",
