@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * CoinGate test API authorization controller
+ *
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
+
 namespace CoinGate\Merchant\Controller\Payment;
 
 use Magento\Checkout\Model\Session;
