@@ -19,6 +19,7 @@ class Receivecurrencies
     {
         return [
           ['value' => 'btc', 'label' => 'Bitcoin (฿)'],
+          ['value' => 'usdt', 'label' => 'USDT'],
           ['value' => 'eur', 'label' => 'Euros (€)'],
           ['value' => 'usd', 'label' => 'US Dollars ($)'],
           ['value' => 'DO_NOT_CONVERT', 'label' => 'Do not convert']
