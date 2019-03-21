@@ -126,8 +126,8 @@ class Payment extends AbstractMethod
             'receive_currency' => $this->getConfigData('receive_currency'),
             'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') .
                 '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
-            'cancel_url' => $this->urlBuilder->getUrl('checkout/cart'),
-            'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
+            'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
+            'success_url' => $this->urlBuilder->getUrl('coingate/payment/returnAction'),
             'title' => $this->storeManager->getWebsite()->getName(),
             'description' => join($description, ', ')
         ];

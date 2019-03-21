@@ -45,7 +45,7 @@ class TestConnection extends Action
         if (!$this->scopeConfig->getValue('payment/coingate_merchant/api_auth_token', ScopeInterface::SCOPE_STORE)) {
             $this->getResponse()->setBody(json_encode([
                 'status' => false,
-                'reason' => $test,
+                'reason' => "No API Token entered",
             ]));
                 return;
         }

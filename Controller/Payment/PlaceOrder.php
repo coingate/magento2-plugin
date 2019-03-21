@@ -8,6 +8,7 @@
  * @copyright   CoinGate (https://coingate.com)
  * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
  */
+
 namespace CoinGate\Merchant\Controller\Payment;
 
 use CoinGate\Merchant\Model\Payment as CoinGatePayment;
@@ -25,32 +26,56 @@ class PlaceOrder extends Action
     protected $scopeConfig;
 
     /**
+     * @var \Magento\Framework\Event\ManagerInterface
+     */
+    protected $_eventManager;
+
+    /**
+     * @var \Magento\Quote\Api\CartRepositoryInterface
+     */
+    protected $quoteRepository;
+
+
+    /**
      * @param Context $context
      * @param OrderFactory $orderFactory
      * @param Session $checkoutSession
      * @param CoinGatePayment $coingatePayment
      */
     public function __construct(
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         Context $context,
         OrderFactory $orderFactory,
         Session $checkoutSession,
         CoinGatePayment $coingatePayment,
         ScopeConfigInterface $scopeConfig
     ) {
-    
-        parent::__construct($context);
 
+        parent::__construct($context);
+        $this->quoteRepository = $quoteRepository;
+        $this->_eventManager = $eventManager;
         $this->orderFactory = $orderFactory;
         $this->coingatePayment = $coingatePayment;
         $this->checkoutSession = $checkoutSession;
         $this->scopeConfig = $scopeConfig;
     }
 
+
+    /**
+     * @return \Magento\Checkout\Model\Session
+     */
+    protected function _getCheckout()
+    {
+        return $this->_objectManager->get('Magento\Checkout\Model\Session');
+    }
+
+
     public function execute()
     {
         $id = $this->checkoutSession->getLastOrderId();
 
-       $order = $this->orderFactory->create()->load($id);
+        $order = $this->orderFactory->create()->load($id);
 
         if (!$order->getIncrementId()) {
             $this->getResponse()->setBody(json_encode([
@@ -59,6 +84,11 @@ class PlaceOrder extends Action
             ]));
             return;
         }
+
+        ///Restores Cart
+        $quote = $this->quoteRepository->get($order->getQuoteId());
+        $quote->setIsActive(1);
+        $this->quoteRepository->save($quote);
 
         $this->getResponse()->setBody(json_encode($this->coingatePayment->getCoinGateRequest($order)));
     }
