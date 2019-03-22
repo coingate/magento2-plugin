@@ -129,7 +129,8 @@ class Payment extends AbstractMethod
             'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
             'success_url' => $this->urlBuilder->getUrl('coingate/payment/returnAction'),
             'title' => $this->storeManager->getWebsite()->getName(),
-            'description' => join($description, ', ')
+            'description' => join($description, ', '),
+            'token' => $payment->getAdditionalInformation('coingate_order_token')
         ];
 
         $cgOrder = \CoinGate\Merchant\Order::create($params);

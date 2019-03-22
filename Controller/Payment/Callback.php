@@ -33,9 +33,10 @@ class Callback extends Action
     ) {
 
         parent::__construct($context);
-
         $this->order = $order;
         $this->coingatePayment = $coingatePayment;
+
+        $this->execute();
     }
 
     /**
