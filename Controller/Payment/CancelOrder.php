@@ -19,7 +19,6 @@ class CancelOrder extends Action
     /**
      * Redirect to to checkout success
      *
-     * @return void
      */
     public function execute()
     {
