@@ -27,7 +27,6 @@ class CancelOrder extends Action
             $order = $this->_getCheckout()->getLastRealOrder();
             if ($order->getId() && ! $order->isCanceled()) {
                 $order->registerCancellation('Canceled by Customer')->save();
-                return true;
             }
 
             $this->_getCheckout()->restoreQuote();
