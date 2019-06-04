@@ -29,10 +29,11 @@ use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Api\OrderManagementInterface;
 
 class Payment extends AbstractMethod
 {
-    const COINGATE_MAGENTO_VERSION = '1.2.4';
+    const COINGATE_MAGENTO_VERSION = '1.2.5';
     const CODE = 'coingate_merchant';
 
     protected $_code = 'coingate_merchant';
@@ -42,6 +43,8 @@ class Payment extends AbstractMethod
     protected $urlBuilder;
     protected $coingate;
     protected $storeManager;
+    protected $orderManagement;
+
 
     /**
      * @param Context $context
@@ -75,6 +78,7 @@ class Payment extends AbstractMethod
         StoreManagerInterface $storeManager,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
+        OrderManagementInterface $orderManagement,
         array $data = []
 
     ) {
@@ -94,6 +98,7 @@ class Payment extends AbstractMethod
         $this->urlBuilder = $urlBuilder;
         $this->coingate = $coingate;
         $this->storeManager = $storeManager;
+        $this->orderManagement = $orderManagement;
 
         \CoinGate\CoinGate::config([
             'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
@@ -125,7 +130,7 @@ class Payment extends AbstractMethod
             'price_currency' => $order->getOrderCurrencyCode(),
             'receive_currency' => $this->getConfigData('receive_currency'),
             'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') .
-                '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
+               '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
             'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
             'success_url' => $this->urlBuilder->getUrl('coingate/payment/returnAction'),
             'title' => $this->storeManager->getWebsite()->getName(),
@@ -184,10 +189,8 @@ class Payment extends AbstractMethod
                 $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
                 $order->save();
             } elseif (in_array($cgOrder->status, ['invalid', 'expired', 'canceled', 'refunded'])) {
-                $order
-                   ->setState(Order::STATE_CANCELED, true)
-                   ->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_CANCELED))
-                   ->save();
+                $this->orderManagement->cancel($cgOrder->order_id);
+
             }
         } catch (\Exception $e) {
             $this->_logger->error($e);
