@@ -33,7 +33,7 @@ use Magento\Sales\Api\OrderManagementInterface;
 
 class Payment extends AbstractMethod
 {
-    const COINGATE_MAGENTO_VERSION = '1.2.5';
+    const COINGATE_MAGENTO_VERSION = '1.2.6';
     const CODE = 'coingate_merchant';
 
     protected $_code = 'coingate_merchant';
@@ -44,7 +44,6 @@ class Payment extends AbstractMethod
     protected $coingate;
     protected $storeManager;
     protected $orderManagement;
-
 
     /**
      * @param Context $context
@@ -59,6 +58,7 @@ class Payment extends AbstractMethod
      * @param StoreManagerInterface $storeManager
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
+     * @param OrderManagementInterface $orderManagement
      * @param array $data
      * @internal param ModuleListInterface $moduleList
      * @internal param TimezoneInterface $localeDate
@@ -73,13 +73,13 @@ class Payment extends AbstractMethod
         Data $paymentData,
         ScopeConfigInterface $scopeConfig,
         Logger $logger,
-        CoinGateMerchant $coingate,
         UrlInterface $urlBuilder,
         StoreManagerInterface $storeManager,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
         OrderManagementInterface $orderManagement,
-        array $data = []
+        CoinGateMerchant $coingate,
+        array $data = [],
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null
 
     ) {
         parent::__construct(
@@ -96,9 +96,9 @@ class Payment extends AbstractMethod
         );
 
         $this->urlBuilder = $urlBuilder;
-        $this->coingate = $coingate;
         $this->storeManager = $storeManager;
         $this->orderManagement = $orderManagement;
+        $this->coingate = $coingate;
 
         \CoinGate\CoinGate::config([
             'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
