@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?php
 /**
  * @category    CoinGate
  * @package     CoinGate_Merchant
@@ -7,7 +6,14 @@
  * @copyright   CoinGate (https://coingate.com)
  * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
  */
--->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-</config>
+declare(strict_types=1);
+
+namespace CoinGate\Merchant\Model\Ui;
+
+use Magento\Checkout\Model\ConfigProviderInterface;
+
+abstract class ConfigProvider implements ConfigProviderInterface
+{
+    const CODE = 'coingate_merchant';
+}

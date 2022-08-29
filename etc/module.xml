@@ -1,17 +1,15 @@
 <?xml version="1.0"?>
 <!--
 /**
-* CoinGate module dependency
-*
-* @category    CoinGate
-* @package     CoinGate_Merchant
-* @author      CoinGate
-* @copyright   CoinGate (https://coingate.com)
-* @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
-*/
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="CoinGate_Merchant" setup_version="1.2.6">
+    <module name="CoinGate_Merchant" setup_version="1.3.0">
       <sequence>
           <module name="Magento_Sales"/>
           <module name="Magento_Quote"/>
