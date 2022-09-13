@@ -1,24 +1,31 @@
 <?xml version="1.0"?>
 <!--
 /**
-* CoinGate module dependency
-*
-* @category    CoinGate
-* @package     CoinGate_Merchant
-* @author      CoinGate
-* @copyright   CoinGate (https://coingate.com)
-* @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
-*/
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <payment>
             <coingate_merchant>
                 <active>0</active>
-                <model>CoinGate\Merchant\Model\Payment</model>
+                <model>CoinGatePaymentFacade</model>
                 <order_status>pending_payment</order_status>
-                <payment_action>authorize_capture</payment_action>
                 <title>Bitcoin and Altcoins via CoinGate</title>
+                <allowspecific>0</allowspecific>
+                <can_use_internal>1</can_use_internal>
+                <can_use_checkout>1</can_use_checkout>
+                <is_gateway>0</is_gateway>
+                <is_offline>0</is_offline>
+                <authorize>0</authorize>
+                <capture>0</capture>
+                <void>0</void>
+                <can_initialize>1</can_initialize>
             </coingate_merchant>
         </payment>
     </default>

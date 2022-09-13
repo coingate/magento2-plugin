@@ -1,20 +1,7 @@
-/**
- * CoinGate payment method model
- *
- * @category    CoinGate
- * @package     CoinGate_Merchant
- * @author      CoinGate
- * @copyright   CoinGate (https://coingate.com)
- * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
- */
-/*browser:true*/
-/*global define*/
-define(
-    [
+define([
         'uiComponent',
         'Magento_Checkout/js/model/payment/renderer-list'
-    ],
-    function (
+    ], function (
         Component,
         rendererList
     ) {

@@ -1,14 +1,12 @@
 <?xml version="1.0"?>
 <!--
 /**
-* CoinGate admin configuration
-*
-* @category    CoinGate
-* @package     CoinGate_Merchant
-* @author      CoinGate
-* @copyright   CoinGate (https://coingate.com)
-* @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
-*/
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
@@ -55,6 +53,15 @@
                 <field id="max_order_total" translate="label" type="text" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Maximum Order Total</label>
                     <comment>Leave empty to disable limit</comment>
+                </field>
+                <field id="test_connection" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label></label>
+                    <button_label>Test connection</button_label>
+                    <button_url>adminhtml/payment/testconnection</button_url>
+                    <frontend_model>CoinGate\Merchant\Block\Adminhtml\System\Config\TestConnection</frontend_model>
+                    <depends>
+                        <field id="payment/coingate_merchant/active">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
