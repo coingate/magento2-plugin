@@ -11,6 +11,9 @@ declare(strict_types = 1);
 
 namespace CoinGate\Merchant\Api\Response;
 
+/**
+ * Interface PlaceOrderInterface
+ */
 interface PlaceOrderInterface
 {
     /**

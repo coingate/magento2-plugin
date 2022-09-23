@@ -60,7 +60,7 @@ define([
                     if (response.status) {
                         window.location.replace(response.payment_url);
                     } else {
-                        window.location.replace('checkout/cart');
+                        window.location.replace('/checkout/cart');
                     }
                 });
             }

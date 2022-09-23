@@ -13,6 +13,9 @@ namespace CoinGate\Merchant\Model\Response;
 
 use CoinGate\Merchant\Api\Response\PlaceOrderInterface as Response;
 
+/**
+ * Class PlaceOrder
+ */
 class PlaceOrder implements Response
 {
     private string $paymentUrl = '';

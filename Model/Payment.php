@@ -25,8 +25,31 @@ use Magento\Sales\Model\OrderRepository;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class Payment
+ */
 class Payment
 {
+    /**
+     * @var string
+     */
+    public const COINGATE_ORDER_TOKEN_KEY = 'coingate_order_token';
+
+    /**
+     * @var string
+     */
+    private const PAID_STATUS = 'paid';
+
+    /**
+     * @var array
+     */
+    private const STATUSES_FOR_CANSEL = [
+        'invalid',
+        'expired',
+        'canceled',
+        'refunded',
+    ];
+
     private UrlInterface $urlBuilder;
     private StoreManagerInterface $storeManager;
     private OrderManagementInterface $orderManagement;
@@ -64,6 +87,8 @@ class Payment
     }
 
     /**
+     * Get CoinGate Order From API
+     *
      * @param OrderInterface $order
      *
      * @return CreateOrder|mixed
@@ -73,7 +98,7 @@ class Payment
         $description = [];
         $token = substr(md5((string)rand()), 0, 32);
         $payment = $order->getPayment();
-        $payment->setAdditionalInformation('coingate_order_token', $token);
+        $payment->setAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY, $token);
         $this->paymentRepository->save($payment);
 
         foreach ($order->getAllItems() as $item) {
@@ -83,19 +108,22 @@ class Payment
         try {
             $params = [
                 'order_id' => $order->getIncrementId(),
-                'price_amount' => number_format((float)$order->getGrandTotal(), 2, '.', ''),
+                'price_amount' => number_format((float) $order->getGrandTotal(), 2, '.', ''),
                 'price_currency' => $order->getOrderCurrencyCode(),
                 'receive_currency' => $this->configManagement->getReceiveCurrency(),
-                'callback_url' => sprintf(
-                    '%srest/V1/merchant/update_order?token=%s',
-                    $this->urlBuilder->getBaseUrl(),
-                    $payment->getAdditionalInformation('coingate_order_token')
+                'callback_url' => $this->urlBuilder->getUrl(
+                    'coingate/payment/callback',
+                    [
+                        '_query' => [
+                            'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
+                        ]
+                    ]
                 ),
                 'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
                 'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
                 'title' => $this->storeManager->getWebsite()->getName(),
                 'description' => implode(', ', $description),
-                'token' => $payment->getAdditionalInformation('coingate_order_token')
+                'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
             ];
         } catch (LocalizedException $exception) {
             $this->logger->critical($exception->getMessage());
@@ -117,6 +145,8 @@ class Payment
     }
 
     /**
+     * Validate CoinGate Callback
+     *
      * @param Order $order
      * @param int $requestId
      *
@@ -132,12 +162,12 @@ class Payment
                 throw new Exception('CoinGate Order #' . $requestId . ' does not exist');
             }
 
-            if ($cgOrder->status === 'paid') {
+            if ($cgOrder->status === self::PAID_STATUS) {
                 $order->setState(Order::STATE_PROCESSING);
                 $orderConfig = $order->getConfig();
                 $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
                 $this->orderRepository->save($order);
-            } elseif (in_array($cgOrder->status, ['invalid', 'expired', 'canceled', 'refunded'])) {
+            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANSEL)) {
                 $this->orderManagement->cancel($cgOrder->order_id);
             }
         } catch (Exception $exception) {
@@ -146,6 +176,8 @@ class Payment
     }
 
     /**
+     * Get Http CoinGate Client
+     *
      * @return Client|null
      */
     private function getClient(): ?Client

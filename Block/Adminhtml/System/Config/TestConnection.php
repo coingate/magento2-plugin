@@ -14,8 +14,26 @@ namespace CoinGate\Merchant\Block\Adminhtml\System\Config;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
+/**
+ * Class TestConnection
+ */
 class TestConnection extends Field
 {
+    /**
+     * @var string
+     */
+    private const BUTTON_LABEL_KEY = 'button_label';
+
+    /**
+     * @var string
+     */
+    private const BUTTON_URL_KEY = 'button_url';
+
+    /**
+     * @var string
+     */
+    private const HTML_ID_KEY = 'html_id';
+
     /**
      * @var string
      */
@@ -28,7 +46,7 @@ class TestConnection extends Field
      *
      * @return string
      */
-    public function render(AbstractElement $element)
+    public function render(AbstractElement $element): string
     {
         $element->unsScope();
 
@@ -42,13 +60,14 @@ class TestConnection extends Field
      *
      * @return string
      */
-    protected function _getElementHtml(AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element): string
     {
         $originalData = $element->getOriginalData();
+
         $this->addData([
-            'button_label' => $originalData['button_label'],
-            'button_url'   => $this->getUrl($originalData['button_url'], ['_current' => true]),
-            'html_id'      => $element->getHtmlId(),
+            self::BUTTON_LABEL_KEY => $originalData[self::BUTTON_LABEL_KEY],
+            self::BUTTON_URL_KEY => $this->getUrl($originalData[self::BUTTON_URL_KEY], ['_current' => true]),
+            self::HTML_ID_KEY => $element->getHtmlId(),
         ]);
 
         return $this->_toHtml();

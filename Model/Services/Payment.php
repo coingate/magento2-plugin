@@ -18,11 +18,12 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
-use Magento\Framework\App\RequestInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class Payment
+ */
 class Payment implements PaymentInterface
 {
     private Response $response;
@@ -30,9 +31,6 @@ class Payment implements PaymentInterface
     private OrderRepository $orderRepository;
     private CartRepositoryInterface $quoteRepository;
     private CoinGatePayment $coinGatePayment;
-    private Order $order;
-    private CoinGatePayment $coingatePayment;
-    private RequestInterface $request;
     private LoggerInterface $logger;
 
     /**
@@ -41,9 +39,6 @@ class Payment implements PaymentInterface
      * @param OrderRepository $orderRepository
      * @param CartRepositoryInterface $quoteRepository
      * @param CoinGatePayment $coinGatePayment
-     * @param Order $order
-     * @param CoinGatePayment $coingatePayment
-     * @param RequestInterface $request
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -52,9 +47,6 @@ class Payment implements PaymentInterface
         OrderRepository $orderRepository,
         CartRepositoryInterface $quoteRepository,
         CoinGatePayment $coinGatePayment,
-        Order $order,
-        CoinGatePayment $coingatePayment,
-        RequestInterface $request,
         LoggerInterface $logger
     ) {
         $this->response = $response;
@@ -62,9 +54,6 @@ class Payment implements PaymentInterface
         $this->orderRepository = $orderRepository;
         $this->quoteRepository = $quoteRepository;
         $this->coinGatePayment = $coinGatePayment;
-        $this->order = $order;
-        $this->coingatePayment = $coingatePayment;
-        $this->request = $request;
         $this->logger = $logger;
     }
 
@@ -105,33 +94,5 @@ class Payment implements PaymentInterface
         $this->response->setPaymentUrl($cgOrder->payment_url);
 
         return $this->response;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function updateOrder(): void
-    {
-        $requestOrderId = $this->request->getParam('order_id');
-        $requestId = (int)$this->request->getParam('id');
-
-        if (!$requestOrderId) {
-            return;
-        }
-
-        $order = $this->order->loadByIncrementId($requestOrderId);
-
-        if (!$order->getId()) {
-            return;
-        }
-
-        $payment = $order->getPayment();
-        $token = $this->request->getParam('token');
-
-        if (!$token || $token !== $payment->getAdditionalInformation('coingate_order_token')) {
-            return;
-        }
-
-        $this->coingatePayment->validateCoinGateCallback($order, $requestId);
     }
 }

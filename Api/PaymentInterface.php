@@ -11,17 +11,15 @@ declare(strict_types = 1);
 
 namespace CoinGate\Merchant\Api;
 
-use CoinGate\Merchant\Api\Response\PlaceOrderInterface as Response;
+use CoinGate\Merchant\Api\Response\PlaceOrderInterface;
 
+/**
+ * Interface PaymentInterface
+ */
 interface PaymentInterface
 {
     /**
      * @return \CoinGate\Merchant\Api\Response\PlaceOrderInterface
      */
-    public function placeOrder(): Response;
-
-    /**
-     * @return void
-     */
-    public function updateOrder(): void;
+    public function placeOrder(): PlaceOrderInterface;
 }

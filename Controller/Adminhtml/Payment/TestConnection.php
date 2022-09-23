@@ -22,7 +22,6 @@ use CoinGate\Merchant\Model\ConfigManagement;
 class TestConnection extends Action implements HttpPostActionInterface
 {
     private SerializerInterface $serializer;
-    private ConfigManagement $configManagement;
 
     /**
      * @param Context $context
@@ -38,12 +37,15 @@ class TestConnection extends Action implements HttpPostActionInterface
     }
 
     /**
+     * Execute action based on request and return result
+     *
      * @return ResponseInterface
      */
     public function execute(): ResponseInterface
     {
         $apiAuthToken = $this->configManagement->getApiAuthToken();
         $sandboxMode = $this->configManagement->isSandboxMode();
+        $response = $this->getResponse();
 
         if (!$apiAuthToken) {
             $result = [
@@ -51,10 +53,10 @@ class TestConnection extends Action implements HttpPostActionInterface
                 'content' => __('No API Token entered')
             ];
 
-            return $this->getResponse()->representJson($this->serializer->serialize($result));
+            return $response->representJson($this->serializer->serialize($result));
         }
 
-        $response = Client::testConnection(
+        $clientResponse = Client::testConnection(
             $apiAuthToken,
             $sandboxMode
         );
@@ -64,13 +66,13 @@ class TestConnection extends Action implements HttpPostActionInterface
             'content' => __('An error has occurred. Check the correctness of the data.')
         ];
 
-        if ($response) {
+        if ($clientResponse) {
             $result = [
                 'status'  => true,
                 'content' => __('CoinGate connection is working properly.')
             ];
         }
 
-        return $this->getResponse()->representJson($this->serializer->serialize($result));
+        return $response->representJson($this->serializer->serialize($result));
     }
 }

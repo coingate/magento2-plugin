@@ -16,10 +16,4 @@
             <resource ref="anonymous" />
         </resources>
     </route>
-    <route url="/V1/merchant/update_order" method="POST">
-        <service class="CoinGate\Merchant\Api\PaymentInterface" method="updateOrder"/>
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
 </routes>

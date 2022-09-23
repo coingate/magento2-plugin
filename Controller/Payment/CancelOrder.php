@@ -21,6 +21,11 @@ use Magento\Framework\Controller\ResultFactory;
 
 class CancelOrder implements HttpGetActionInterface
 {
+    /**
+     * @var string
+     */
+    private const COMMENT = 'Canceled by Customer';
+
     private CheckoutSession $checkoutSession;
     private OrderRepository $orderRepository;
     private ResultFactory $resultFactory;
@@ -45,6 +50,8 @@ class CancelOrder implements HttpGetActionInterface
     }
 
     /**
+     * Execute action based on request and return result
+     *
      * @return ResultInterface
      */
     public function execute(): ResultInterface
@@ -52,9 +59,9 @@ class CancelOrder implements HttpGetActionInterface
         if ($this->checkoutSession->getLastRealOrderId()) {
             $order = $this->checkoutSession->getLastRealOrder();
 
-            if ($order->getId() && ! $order->isCanceled()) {
+            if ($order->getId() && !$order->isCanceled()) {
                 try {
-                    $order->registerCancellation('Canceled by Customer');
+                    $order->registerCancellation(self::COMMENT);
                     $this->orderRepository->save($order);
                 } catch (LocalizedException $exception) {
                     $this->logger->critical($exception->getMessage());

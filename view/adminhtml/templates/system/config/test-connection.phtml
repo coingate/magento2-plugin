@@ -1,22 +1,20 @@
 <?php
 
 use CoinGate\Merchant\Block\Adminhtml\System\Config\TestConnection;
-use Magento\Framework\Escaper;
 
 /** @var TestConnection $block */
-/** @var Escaper $escaper */
 ?>
 <div class="actions actions-test-email">
     <button class="actions-test-email" type="button" id="<?= $block->getHtmlId() ?>">
-        <span><?= $escaper->escapeHtml($block->getButtonLabel()) ?></span>
+        <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
     </button>
 </div>
 <script type="text/x-magento-init">
     {
-        "<?= $escaper->escapeHtml('#' . $block->getHtmlId()) ?>": {
+        "#payment_us_coingate_merchant_test_connection": {
             "CoinGate_Merchant/js/testconnection": {
-                "ajaxUrl": "<?= $escaper->escapeHtml($block->getButtonUrl()) ?>",
-                "testConnection": "<?= $escaper->escapeHtml('#' . $block->getHtmlId()) ?>"
+                "ajaxUrl": "<?= $block->escapeHtml($block->getButtonUrl()) ?>",
+                "testConnection": "<?= $block->escapeHtml('#' . $block->getHtmlId()) ?>"
             }
         }
     }
