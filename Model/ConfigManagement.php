@@ -12,16 +12,22 @@ declare(strict_types = 1);
 namespace CoinGate\Merchant\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Module\ResourceInterface;
 
 /**
  * Class ConfigManagement
  */
 class ConfigManagement
 {
+    /**
+     * @var string
+     */
+    private const NAME = 'CoinGate_Merchant';
+
     /**
      * @var string
      */
@@ -37,24 +43,49 @@ class ConfigManagement
      */
     private const XML_PATH_PAYMENT_COINGATE_MERCHANT_RECEIVE_CURRENCY = 'payment/coingate_merchant/receive_currency';
 
+    /**
+     * @var string
+     */
+    private const XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_EMAIL = 'payment/coingate_merchant/pre_fill_email';
+
     private ScopeConfigInterface $scopeConfig;
     private StoreManagerInterface $storeManager;
     private LoggerInterface $logger;
+    private ResourceInterface $resource;
     private ?int $storeId = null;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface $logger
+     * @param ResourceInterface $resource
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ResourceInterface $resource
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
+        $this->resource = $resource;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return self::NAME;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        return $this->resource->getDataVersion(self::NAME);
     }
 
     /**
@@ -97,6 +128,18 @@ class ConfigManagement
             ScopeInterface::SCOPE_STORE,
             $this->getStoreId()
         );
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPreFillEmail(): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_EMAIL,
+            ScopeInterface::SCOPE_STORE,
+            $this->getStoreId()
+        ) ?? false;
     }
 
     /**

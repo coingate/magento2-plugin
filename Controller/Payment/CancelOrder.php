@@ -11,21 +11,16 @@ declare(strict_types = 1);
 
 namespace CoinGate\Merchant\Controller\Payment;
 
+use Exception;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Sales\Model\OrderRepository;
 use Psr\Log\LoggerInterface;
-use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Controller\ResultFactory;
 
 class CancelOrder implements HttpGetActionInterface
 {
-    /**
-     * @var string
-     */
-    private const COMMENT = 'Canceled by Customer';
-
     private CheckoutSession $checkoutSession;
     private OrderRepository $orderRepository;
     private ResultFactory $resultFactory;
@@ -58,14 +53,12 @@ class CancelOrder implements HttpGetActionInterface
     {
         if ($this->checkoutSession->getLastRealOrderId()) {
             $order = $this->checkoutSession->getLastRealOrder();
+            $this->checkoutSession->restoreQuote();
 
-            if ($order->getId() && !$order->isCanceled()) {
-                try {
-                    $order->registerCancellation(self::COMMENT);
-                    $this->orderRepository->save($order);
-                } catch (LocalizedException $exception) {
-                    $this->logger->critical($exception->getMessage());
-                }
+            try {
+                $this->orderRepository->delete($order);
+            } catch (Exception $exception) {
+                $this->logger->critical($exception->getMessage());
             }
         }
 

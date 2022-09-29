@@ -33,7 +33,12 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
     /**
      * @var string
      */
-    private const BAD_REQUEST_PHRASE = 'Bad request';
+    private const NOT_FOUND_PHRASE = 'Not Found';
+
+    /**
+     * @var string
+     */
+    private const UNPROCESSABLE_CONTENT_PHRASE = 'Unprocessable Content';
 
     private ResponseInterface $response;
     private RequestInterface $request;
@@ -74,9 +79,9 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
 
         if (!$requestOrderId) {
             return $this->response->setStatusHeader(
-                Response::STATUS_CODE_400,
+                Response::STATUS_CODE_422,
                 AbstractMessage::VERSION_11,
-                self::BAD_REQUEST_PHRASE
+                self::UNPROCESSABLE_CONTENT_PHRASE
             );
         }
 
@@ -84,9 +89,9 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
 
         if (!$order->getId()) {
             return $this->response->setStatusHeader(
-                Response::STATUS_CODE_400,
+                Response::STATUS_CODE_422,
                 AbstractMessage::VERSION_11,
-                self::BAD_REQUEST_PHRASE
+                self::UNPROCESSABLE_CONTENT_PHRASE
             );
         }
 
@@ -95,13 +100,19 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
 
         if (!$token || $token !== $payment->getAdditionalInformation(CoinGatePayment::COINGATE_ORDER_TOKEN_KEY)) {
             return $this->response->setStatusHeader(
-                Response::STATUS_CODE_400,
+                Response::STATUS_CODE_422,
                 AbstractMessage::VERSION_11,
-                self::BAD_REQUEST_PHRASE
+                self::UNPROCESSABLE_CONTENT_PHRASE
             );
         }
 
-        $this->coingatePayment->validateCoinGateCallback($order, $requestId);
+        if (!$this->coingatePayment->validateCoinGateCallback($order, $requestId)) {
+            return $this->response->setStatusHeader(
+                Response::STATUS_CODE_404,
+                AbstractMessage::VERSION_11,
+                self::NOT_FOUND_PHRASE
+            );
+        }
 
         return $this->response->setStatusHeader(Response::STATUS_CODE_200, AbstractMessage::VERSION_11);
     }

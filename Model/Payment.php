@@ -23,6 +23,8 @@ use Magento\Sales\Api\OrderPaymentRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Store\Model\StoreManagerInterface;
+use CoinGate\Merchant\Model\Ui\ConfigProvider;
+use Magento\Framework\App\ProductMetadataInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -58,6 +60,7 @@ class Payment
     private ConfigManagement $configManagement;
     private OrderRepository $orderRepository;
     private LoggerInterface $logger;
+    private ProductMetadataInterface $metadata;
 
     /**
      * @param UrlInterface $urlBuilder
@@ -67,6 +70,7 @@ class Payment
      * @param ConfigManagement $configManagement
      * @param OrderRepository $orderRepository
      * @param LoggerInterface $logger
+     * @param ProductMetadataInterface $metadata
      */
     public function __construct(
         UrlInterface $urlBuilder,
@@ -75,7 +79,8 @@ class Payment
         OrderPaymentRepositoryInterface $paymentRepository,
         ConfigManagement $configManagement,
         OrderRepository $orderRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ProductMetadataInterface $metadata
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
@@ -84,6 +89,7 @@ class Payment
         $this->configManagement = $configManagement;
         $this->orderRepository = $orderRepository;
         $this->logger = $logger;
+        $this->metadata = $metadata;
     }
 
     /**
@@ -106,25 +112,7 @@ class Payment
         }
 
         try {
-            $params = [
-                'order_id' => $order->getIncrementId(),
-                'price_amount' => number_format((float) $order->getGrandTotal(), 2, '.', ''),
-                'price_currency' => $order->getOrderCurrencyCode(),
-                'receive_currency' => $this->configManagement->getReceiveCurrency(),
-                'callback_url' => $this->urlBuilder->getUrl(
-                    'coingate/payment/callback',
-                    [
-                        '_query' => [
-                            'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
-                        ]
-                    ]
-                ),
-                'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
-                'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
-                'title' => $this->storeManager->getWebsite()->getName(),
-                'description' => implode(', ', $description),
-                'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
-            ];
+            $params = $this->getCoinGateOrderParams($order, $description);
         } catch (LocalizedException $exception) {
             $this->logger->critical($exception->getMessage());
 
@@ -150,10 +138,14 @@ class Payment
      * @param Order $order
      * @param int $requestId
      *
-     * @return void
+     * @return bool
      */
-    public function validateCoinGateCallback(Order $order, int $requestId): void
+    public function validateCoinGateCallback(Order $order, int $requestId): bool
     {
+        if (!$this->isCoingatePaymentMerchant($order)) {
+            return false;
+        }
+
         try {
             $client = $this->getClient();
             $cgOrder = $client->order->get($requestId);
@@ -172,7 +164,23 @@ class Payment
             }
         } catch (Exception $exception) {
             $this->logger->critical($exception);
+
+            return false;
         }
+
+        return true;
+    }
+
+    /**
+     * @param Order $order
+     *
+     * @return bool
+     */
+    public function isCoingatePaymentMerchant(Order $order): bool
+    {
+        $payment = $order->getPayment();
+
+        return $payment->getMethod() === ConfigProvider::CODE;
     }
 
     /**
@@ -184,9 +192,48 @@ class Payment
     {
         if (!$this->client) {
             $environment = $this->configManagement->isSandboxMode();
+            Client::setAppInfo($this->configManagement->getName(), $this->configManagement->getVersion());
             $this->client = new Client($this->configManagement->getApiAuthToken(), $environment);
         }
 
         return $this->client;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param array $description
+     *
+     * @return array
+     *
+     * @throws LocalizedException
+     */
+    private function getCoinGateOrderParams(OrderInterface $order, array $description): array
+    {
+        $payment = $order->getPayment();
+        $params = [
+            'order_id' => $order->getIncrementId(),
+            'price_amount' => number_format((float) $order->getGrandTotal(), 2, '.', ''),
+            'price_currency' => $order->getOrderCurrencyCode(),
+            'receive_currency' => $this->configManagement->getReceiveCurrency(),
+            'callback_url' => $this->urlBuilder->getUrl(
+                'coingate/payment/callback',
+                [
+                    '_query' => [
+                        'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
+                    ]
+                ]
+            ),
+            'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
+            'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
+            'title' => $this->storeManager->getWebsite()->getName(),
+            'description' => implode(', ', $description),
+            'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
+        ];
+
+        if ($this->configManagement->isPreFillEmail()) {
+            $params['purchaser_email'] = $order->getCustomerEmail();
+        }
+
+        return $params;
     }
 }

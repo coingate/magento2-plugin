@@ -36,6 +36,12 @@
                     <source_model>CoinGate\Merchant\Model\Source\Receivecurrencies</source_model>
                     <comment>Currency you want to receive when making withdrawal at CoinGate. Please take a note what if you choose EUR or USD you will be asked to verify your business before making a withdrawal at CoinGate.</comment>
                 </field>
+                <field id="pre_fill_email" translate="label" type="select" sortOrder="45"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Pre-fill CoinGate invoice email</label>
+                    <comment>When this feature is enabled, customer email will be passed to CoinGate#s checkout from automatically.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="sandbox_mode" translate="label" type="select" sortOrder="50"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sandbox Mode</label>

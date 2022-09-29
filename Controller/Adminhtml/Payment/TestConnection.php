@@ -18,20 +18,29 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use CoinGate\Merchant\Model\ConfigManagement;
+use Magento\Framework\App\ProductMetadataInterface;
 
 class TestConnection extends Action implements HttpPostActionInterface
 {
     private SerializerInterface $serializer;
+    private ProductMetadataInterface $metadata;
+    private ConfigManagement $configManagement;
 
     /**
      * @param Context $context
      * @param SerializerInterface $serializer
      * @param ConfigManagement $configManagement
+     * @param ProductMetadataInterface $metadata
      */
-    public function __construct(Context $context, SerializerInterface $serializer, ConfigManagement $configManagement)
-    {
+    public function __construct(
+        Context $context,
+        SerializerInterface $serializer,
+        ConfigManagement $configManagement,
+        ProductMetadataInterface $metadata
+    ) {
         $this->serializer = $serializer;
         $this->configManagement = $configManagement;
+        $this->metadata = $metadata;
 
         parent::__construct($context);
     }
@@ -56,6 +65,7 @@ class TestConnection extends Action implements HttpPostActionInterface
             return $response->representJson($this->serializer->serialize($result));
         }
 
+        Client::setAppInfo($this->configManagement->getName(), $this->configManagement->getVersion());
         $clientResponse = Client::testConnection(
             $apiAuthToken,
             $sandboxMode
