@@ -102,7 +102,7 @@ class Payment
     public function getCoinGateOrder(OrderInterface $order)
     {
         $description = [];
-        $token = substr(md5((string)rand()), 0, 32);
+        $token = substr(hash('sha256', rand()), 0, 32);
         $payment = $order->getPayment();
         $payment->setAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY, $token);
         $this->paymentRepository->save($payment);
