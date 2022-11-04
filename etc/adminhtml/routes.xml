@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <!--
 /**
  * @category    CoinGate
@@ -10,9 +10,9 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
-    <router id="standard">
-        <route id="coingate" frontName="coingate">
-            <module name="CoinGate_Merchant" />
+    <router id="admin">
+        <route id="adminhtml">
+            <module name="CoinGate_Merchant" before="Magento_Backend"/>
         </route>
     </router>
 </config>

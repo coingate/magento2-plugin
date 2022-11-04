@@ -1,199 +1,239 @@
 <?php
 /**
- * CoinGate payment method model
- *
  * @category    CoinGate
  * @package     CoinGate_Merchant
  * @author      CoinGate
  * @copyright   CoinGate (https://coingate.com)
  * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
  */
+
+declare(strict_types = 1);
+
 namespace CoinGate\Merchant\Model;
 
-use CoinGate\CoinGate;
-use CoinGate\Merchant as CoinGateMerchant;
-use Magento\Directory\Model\CountryFactory;
-use Magento\Framework\Api\AttributeValueFactory;
-use Magento\Framework\Api\ExtensionAttributesFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\Response\Http;
-use Magento\Framework\Data\Collection\AbstractDb;
-use Magento\Framework\Model\Context;
-use Magento\Framework\Model\ResourceModel\AbstractResource;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Registry;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use CoinGate\Client;
+use CoinGate\Exception\ApiErrorException;
+use CoinGate\Resources\CreateOrder;
+use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
-use Magento\Payment\Helper\Data;
-use Magento\Payment\Model\Method\AbstractMethod;
-use Magento\Payment\Model\Method\Logger;
-use Magento\Sales\Model\Order;
-use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\OrderPaymentRepositoryInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderRepository;
+use Magento\Store\Model\StoreManagerInterface;
+use CoinGate\Merchant\Model\Ui\ConfigProvider;
+use Magento\Framework\App\ProductMetadataInterface;
+use Psr\Log\LoggerInterface;
 
-class Payment extends AbstractMethod
+/**
+ * Class Payment
+ */
+class Payment
 {
-    const COINGATE_MAGENTO_VERSION = '1.2.6';
-    const CODE = 'coingate_merchant';
-
-    protected $_code = 'coingate_merchant';
-
-    protected $_isInitializeNeeded = true;
-
-    protected $urlBuilder;
-    protected $coingate;
-    protected $storeManager;
-    protected $orderManagement;
+    /**
+     * @var string
+     */
+    public const COINGATE_ORDER_TOKEN_KEY = 'coingate_order_token';
 
     /**
-     * @param Context $context
-     * @param Registry $registry
-     * @param ExtensionAttributesFactory $extensionFactory
-     * @param AttributeValueFactory $customAttributeFactory
-     * @param Data $paymentData
-     * @param ScopeConfigInterface $scopeConfig
-     * @param Logger $logger
-     * @param CoinGateMerchant $coingate
+     * @var string
+     */
+    private const PAID_STATUS = 'paid';
+
+    /**
+     * @var array
+     */
+    private const STATUSES_FOR_CANSEL = [
+        'invalid',
+        'expired',
+        'canceled',
+        'refunded',
+    ];
+
+    private UrlInterface $urlBuilder;
+    private StoreManagerInterface $storeManager;
+    private OrderManagementInterface $orderManagement;
+    private OrderPaymentRepositoryInterface $paymentRepository;
+    private ?Client $client = null;
+    private ConfigManagement $configManagement;
+    private OrderRepository $orderRepository;
+    private LoggerInterface $logger;
+    private ProductMetadataInterface $metadata;
+
+    /**
      * @param UrlInterface $urlBuilder
      * @param StoreManagerInterface $storeManager
-     * @param AbstractResource|null $resource
-     * @param AbstractDb|null $resourceCollection
      * @param OrderManagementInterface $orderManagement
-     * @param array $data
-     * @internal param ModuleListInterface $moduleList
-     * @internal param TimezoneInterface $localeDate
-     * @internal param CountryFactory $countryFactory
-     * @internal param Http $response
+     * @param OrderPaymentRepositoryInterface $paymentRepository
+     * @param ConfigManagement $configManagement
+     * @param OrderRepository $orderRepository
+     * @param LoggerInterface $logger
+     * @param ProductMetadataInterface $metadata
      */
     public function __construct(
-        Context $context,
-        Registry $registry,
-        ExtensionAttributesFactory $extensionFactory,
-        AttributeValueFactory $customAttributeFactory,
-        Data $paymentData,
-        ScopeConfigInterface $scopeConfig,
-        Logger $logger,
         UrlInterface $urlBuilder,
         StoreManagerInterface $storeManager,
         OrderManagementInterface $orderManagement,
-        CoinGateMerchant $coingate,
-        array $data = [],
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null
-
+        OrderPaymentRepositoryInterface $paymentRepository,
+        ConfigManagement $configManagement,
+        OrderRepository $orderRepository,
+        LoggerInterface $logger,
+        ProductMetadataInterface $metadata
     ) {
-        parent::__construct(
-            $context,
-            $registry,
-            $extensionFactory,
-            $customAttributeFactory,
-            $paymentData,
-            $scopeConfig,
-            $logger,
-            $resource,
-            $resourceCollection,
-            $data
-        );
-
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
         $this->orderManagement = $orderManagement;
-        $this->coingate = $coingate;
-
-        \CoinGate\CoinGate::config([
-            'environment' => $this->getConfigData('sandbox_mode') ? 'sandbox' : 'live',
-            'auth_token'  => $this->getConfigData('api_auth_token'),
-            'user_agent'  => 'CoinGate - Magento 2 Extension v' . self::COINGATE_MAGENTO_VERSION
-        ]);
+        $this->paymentRepository = $paymentRepository;
+        $this->configManagement = $configManagement;
+        $this->orderRepository = $orderRepository;
+        $this->logger = $logger;
+        $this->metadata = $metadata;
     }
 
     /**
-     * @param Order $order
-     * @return array
+     * Get CoinGate Order From API
+     *
+     * @param OrderInterface $order
+     *
+     * @return CreateOrder|mixed
      */
-    public function getCoinGateRequest(Order $order)
+    public function getCoinGateOrder(OrderInterface $order)
     {
-        $token = substr(md5(rand()), 0, 32);
-
-        $payment = $order->getPayment();
-        $payment->setAdditionalInformation('coingate_order_token', $token);
-        $payment->save();
-
         $description = [];
+        $token = substr(hash('sha256', rand()), 0, 32);
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY, $token);
+        $this->paymentRepository->save($payment);
+
         foreach ($order->getAllItems() as $item) {
-            $description[] = number_format($item->getQtyOrdered(), 0) . ' × ' . $item->getName();
+            $description[] = number_format((float)$item->getQtyOrdered(), 0) . ' × ' . $item->getName();
         }
-
-        $params = [
-            'order_id' => $order->getIncrementId(),
-            'price_amount' => number_format($order->getGrandTotal(), 2, '.', ''),
-            'price_currency' => $order->getOrderCurrencyCode(),
-            'receive_currency' => $this->getConfigData('receive_currency'),
-            'callback_url' => ($this->urlBuilder->getUrl('coingate/payment/callback') .
-               '?token=' . $payment->getAdditionalInformation('coingate_order_token')),
-            'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
-            'success_url' => $this->urlBuilder->getUrl('coingate/payment/returnAction'),
-            'title' => $this->storeManager->getWebsite()->getName(),
-            'description' => join($description, ', '),
-            'token' => $payment->getAdditionalInformation('coingate_order_token')
-        ];
-
-        $cgOrder = \CoinGate\Merchant\Order::create($params);
-
-        if ($cgOrder) {
-            return [
-                'status' => true,
-                'payment_url' => $cgOrder->payment_url
-            ];
-        } else {
-            return [
-                'status' => false
-            ];
-        }
-    }
-
-    /**
-     * @param Order $order
-     */
-    public function validateCoinGateCallback(Order $order)
-    {
 
         try {
-            if (!$order || !$order->getIncrementId()) {
-                $request_order_id = (filter_input(INPUT_POST, 'order_id')
-                    ? filter_input(INPUT_POST, 'order_id') : filter_input(INPUT_GET, 'order_id')
-                );
+            $params = $this->getCoinGateOrderParams($order, $description);
+        } catch (LocalizedException $exception) {
+            $this->logger->critical($exception->getMessage());
 
-                throw new \Exception('Order #' . $request_order_id . ' does not exists');
-            }
+            return null;
+        }
 
-            $payment = $order->getPayment();
-            $get_token = filter_input(INPUT_GET, 'token');
-            $token1 = $get_token ? $get_token : '';
-            $token2 = $payment->getAdditionalInformation('coingate_order_token');
+        $client = $this->getClient();
 
-            if ($token2 == '' || $token1 != $token2) {
-                throw new \Exception('Tokens do match.');
-            }
+        try {
+            $cgOrder = $client->order->create($params);
+        } catch (ApiErrorException $exception) {
+            $this->logger->critical($exception->getMessage());
 
-            $request_id = (filter_input(INPUT_POST, 'id')
-                ? filter_input(INPUT_POST, 'id') :  filter_input(INPUT_GET, 'id'));
-            $cgOrder = \CoinGate\Merchant\Order::find($request_id);
+            return null;
+        }
+
+        return $cgOrder;
+    }
+
+    /**
+     * Validate CoinGate Callback
+     *
+     * @param Order $order
+     * @param int $requestId
+     *
+     * @return bool
+     */
+    public function validateCoinGateCallback(Order $order, int $requestId): bool
+    {
+        if (!$this->isCoingatePaymentMerchant($order)) {
+            return false;
+        }
+
+        try {
+            $client = $this->getClient();
+            $cgOrder = $client->order->get($requestId);
 
             if (!$cgOrder) {
-                throw new \Exception('CoinGate Order #' . $request_id . ' does not exist');
+                throw new Exception('CoinGate Order #' . $requestId . ' does not exist');
             }
 
-            if ($cgOrder->status == 'paid') {
+            if ($cgOrder->status === self::PAID_STATUS) {
                 $order->setState(Order::STATE_PROCESSING);
-                $order->setStatus($order->getConfig()->getStateDefaultStatus(Order::STATE_PROCESSING));
-                $order->save();
-            } elseif (in_array($cgOrder->status, ['invalid', 'expired', 'canceled', 'refunded'])) {
+                $orderConfig = $order->getConfig();
+                $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
+                $this->orderRepository->save($order);
+            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANSEL)) {
                 $this->orderManagement->cancel($cgOrder->order_id);
-
             }
-        } catch (\Exception $e) {
-            $this->_logger->error($e);
+        } catch (Exception $exception) {
+            $this->logger->critical($exception);
+
+            return false;
         }
+
+        return true;
+    }
+
+    /**
+     * @param Order $order
+     *
+     * @return bool
+     */
+    public function isCoingatePaymentMerchant(Order $order): bool
+    {
+        $payment = $order->getPayment();
+
+        return $payment->getMethod() === ConfigProvider::CODE;
+    }
+
+    /**
+     * Get Http CoinGate Client
+     *
+     * @return Client|null
+     */
+    private function getClient(): ?Client
+    {
+        if (!$this->client) {
+            $environment = $this->configManagement->isSandboxMode();
+            Client::setAppInfo($this->configManagement->getName(), $this->configManagement->getVersion());
+            $this->client = new Client($this->configManagement->getApiAuthToken(), $environment);
+        }
+
+        return $this->client;
+    }
+
+    /**
+     * @param OrderInterface $order
+     * @param array $description
+     *
+     * @return array
+     *
+     * @throws LocalizedException
+     */
+    private function getCoinGateOrderParams(OrderInterface $order, array $description): array
+    {
+        $payment = $order->getPayment();
+        $params = [
+            'order_id' => $order->getIncrementId(),
+            'price_amount' => number_format((float) $order->getGrandTotal(), 2, '.', ''),
+            'price_currency' => $order->getOrderCurrencyCode(),
+            'receive_currency' => $this->configManagement->getReceiveCurrency(),
+            'callback_url' => $this->urlBuilder->getUrl(
+                'coingate/payment/callback',
+                [
+                    '_query' => [
+                        'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
+                    ]
+                ]
+            ),
+            'cancel_url' => $this->urlBuilder->getUrl('coingate/payment/cancelOrder'),
+            'success_url' => $this->urlBuilder->getUrl('checkout/onepage/success'),
+            'title' => $this->storeManager->getWebsite()->getName(),
+            'description' => implode(', ', $description),
+            'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
+        ];
+
+        if ($this->configManagement->isPreFillEmail()) {
+            $params['purchaser_email'] = $order->getCustomerEmail();
+        }
+
+        return $params;
     }
 }

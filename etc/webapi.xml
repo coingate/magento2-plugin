@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
+-->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/coingate/place_order" method="POST">
+        <service class="CoinGate\Merchant\Api\PaymentInterface" method="placeOrder"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+</routes>

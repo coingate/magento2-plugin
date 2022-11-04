@@ -1,0 +1,21 @@
+<?php
+
+use CoinGate\Merchant\Block\Adminhtml\System\Config\TestConnection;
+
+/** @var TestConnection $block */
+?>
+<div class="actions actions-test-email">
+    <button class="actions-test-email" type="button" id="<?= $block->getHtmlId() ?>">
+        <span><?= $block->escapeHtml($block->getButtonLabel()) ?></span>
+    </button>
+</div>
+<script type="text/x-magento-init">
+    {
+        "#payment_us_coingate_merchant_test_connection": {
+            "CoinGate_Merchant/js/testconnection": {
+                "ajaxUrl": "<?= $block->escapeHtml($block->getButtonUrl()) ?>",
+                "testConnection": "<?= $block->escapeHtml('#' . $block->getHtmlId()) ?>"
+            }
+        }
+    }
+</script>

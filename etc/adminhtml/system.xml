@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
 <!--
 /**
-* CoinGate admin configuration
-*
-* @category    CoinGate
-* @package     CoinGate_Merchant
-* @author      CoinGate
-* @copyright   CoinGate (https://coingate.com)
-* @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
-*/
+ * @category    CoinGate
+ * @package     CoinGate_Merchant
+ * @author      CoinGate
+ * @copyright   CoinGate (https://coingate.com)
+ * @license     https://github.com/coingate/magento2-plugin/blob/master/LICENSE The MIT License (MIT)
+ */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
             <group id="coingate_merchant" translate="label" type="text" sortOrder="88" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -18,43 +17,68 @@
                 <comment>
                     <![CDATA[Not working? <a href="https://developer.coingate.com/docs/issues" target="_blank">View common issues</a> or contact <a href="mailto:support@coingate.com">support@coingate.com</a>]]>
                 </comment>
-                <field id="active" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="active" translate="label" type="select" sortOrder="10"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="title" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label" type="text" sortOrder="20"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Title</label>
                 </field>
-                <field id="api_auth_token" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="api_auth_token" translate="label" type="text" sortOrder="30"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Auth Token</label>
                 </field>
-                <field id="receive_currency" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="receive_currency" translate="label" type="select" sortOrder="40"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Receive Currency</label>
                     <source_model>CoinGate\Merchant\Model\Source\Receivecurrencies</source_model>
-                    <comment>Currency you want to receive when making withdrawal at CoinGate. Please take a note what if you choose EUR or USD you will be asked to verify your business before making a withdrawal at CoinGate.</comment>
+                    <comment>Currency you want to receive when making withdrawal at CoinGate.</comment>
                 </field>
-                <field id="sandbox_mode" translate="label" type="select" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="pre_fill_email" translate="label" type="select" sortOrder="45"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Pre-fill CoinGate invoice email</label>
+                    <comment>When enabled, customers email will be passed to CoinGate's invoice</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="sandbox_mode" translate="label" type="select" sortOrder="50"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Sandbox Mode</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Please note, that for Sandbox mode you must generate separate API credentials on sandbox.coingate.com. API credentials generated on coingate.com will not work for Sandbox mode.</comment>
                 </field>
-                <field id="sort_order" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Sort Order</label>
-                </field>
-                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="60"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Payment from Applicable Countries</label>
                     <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                 </field>
-                <field id="specificcountry" translate="label" type="multiselect" sortOrder="51" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="70"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Payment from Specific Countries</label>
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                 </field>
-                <field id="min_order_total" translate="label" type="text" sortOrder="98" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="min_order_total" translate="label" type="text" sortOrder="80"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Minimum Order Total</label>
                 </field>
-                <field id="max_order_total" translate="label" type="text" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="max_order_total" translate="label" type="text" sortOrder="90"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Maximum Order Total</label>
                     <comment>Leave empty to disable limit</comment>
+                </field>
+                <field id="sort_order" translate="label" type="text" sortOrder="100"
+                       showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sort Order</label>
+                </field>
+                <field id="test_connection" translate="label" sortOrder="110"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <button_label>Test connection</button_label>
+                    <button_url>adminhtml/payment/testconnection</button_url>
+                    <frontend_model>CoinGate\Merchant\Block\Adminhtml\System\Config\TestConnection</frontend_model>
+                    <depends>
+                        <field id="payment/coingate_merchant/active">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
