@@ -41,11 +41,6 @@ class ConfigManagement
     /**
      * @var string
      */
-    private const XML_PATH_PAYMENT_COINGATE_MERCHANT_RECEIVE_CURRENCY = 'payment/coingate_merchant/receive_currency';
-
-    /**
-     * @var string
-     */
     private const XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_EMAIL = 'payment/coingate_merchant/pre_fill_email';
 
     private ScopeConfigInterface $scopeConfig;
@@ -114,20 +109,6 @@ class ConfigManagement
             ScopeInterface::SCOPE_STORE,
             $this->getStoreId()
         ) ?? false;
-    }
-
-    /**
-     * Get Receive Currency
-     *
-     * @return string|null
-     */
-    public function getReceiveCurrency(): ?string
-    {
-        return $this->scopeConfig->getValue(
-            self::XML_PATH_PAYMENT_COINGATE_MERCHANT_RECEIVE_CURRENCY,
-            ScopeInterface::SCOPE_STORE,
-            $this->getStoreId()
-        );
     }
 
     /**

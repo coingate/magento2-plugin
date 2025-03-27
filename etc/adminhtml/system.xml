@@ -30,12 +30,6 @@
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Auth Token</label>
                 </field>
-                <field id="receive_currency" translate="label" type="select" sortOrder="40"
-                       showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Receive Currency</label>
-                    <source_model>CoinGate\Merchant\Model\Source\Receivecurrencies</source_model>
-                    <comment>Currency you want to receive when making withdrawal at CoinGate.</comment>
-                </field>
                 <field id="pre_fill_email" translate="label" type="select" sortOrder="45"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Pre-fill CoinGate invoice email</label>
