@@ -229,12 +229,11 @@ class Payment
             'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
         ];
 
-        if ($this->configManagement->isPreFillEmail()) {
-            $params['purchaser_email'] = $order->getCustomerEmail();
-        }
+        $params['purchaser_email'] = $order->getCustomerEmail();
 
-        // TODO: should be optional as prefill email?
-        $params['shopper'] = $this->getShopperInfo($order);
+        if ($this->configManagement->isPreFillShopperDetails()) {
+            $params['shopper'] = $this->getShopperInfo($order);
+        }
 
         return $params;
     }
@@ -256,22 +255,22 @@ class Payment
             'email' => $order->getCustomerEmail(),
             'first_name' => $order->getCustomerFirstname(),
             'last_name' => $order->getCustomerLastname(),
-            'date_of_birth' => $order->getCustomerDob(),
-            'residence_address' => $street,
-            'residence_postal_code' => $billingAddress->getPostcode(),
-            'residence_city' => $billingAddress->getCity(),
-            'residence_country' => $billingAddress->getCountryId(),
+            'date_of_birth' => $order->getCustomerDob() ? date('Y-m-d', strtotime($order->getCustomerDob())) : null,
         ];
 
         if ($isBusiness) {
             $shopper['company_details'] = [
                 'name' => $billingAddress->getCompany(),
-                // 'incorporation_country' => $billingAddress->getCountryId(),
-                // 'address' => $street,
-                // 'postal_code' => $billingAddress->getPostcode(),
-                // 'city' => $billingAddress->getCity(),
-                // 'country' => $billingAddress->getCountryId(),
+                'address' => $street,
+                'postal_code' => $billingAddress->getPostcode(),
+                'city' => $billingAddress->getCity(),
+                'country' => $billingAddress->getCountryId(),
             ];
+        } else {
+            $shopper['residence_address'] = $street;
+            $shopper['residence_postal_code'] = $billingAddress->getPostcode();
+            $shopper['residence_city'] = $billingAddress->getCity();
+            $shopper['residence_country'] = $billingAddress->getCountryId();
         }
 
         return $shopper;

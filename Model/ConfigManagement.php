@@ -41,7 +41,7 @@ class ConfigManagement
     /**
      * @var string
      */
-    private const XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_EMAIL = 'payment/coingate_merchant/pre_fill_email';
+    private const XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_SHOPPER_DETAILS = 'payment/coingate_merchant/pre_fill_shopper_details';
 
     private ScopeConfigInterface $scopeConfig;
     private StoreManagerInterface $storeManager;
@@ -114,10 +114,10 @@ class ConfigManagement
     /**
      * @return bool
      */
-    public function isPreFillEmail(): bool
+    public function isPreFillShopperDetails(): bool
     {
         return $this->scopeConfig->isSetFlag(
-            self::XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_EMAIL,
+            self::XML_PATH_PAYMENT_COINGATE_MERCHANT_PRE_FILL_SHOPPER_DETAILS,
             ScopeInterface::SCOPE_STORE,
             $this->getStoreId()
         ) ?? false;

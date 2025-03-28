@@ -14,7 +14,7 @@
         <payment>
             <coingate_merchant>
                 <active>0</active>
-                <pre_fill_email>0</pre_fill_email>
+                <pre_fill_shopper_details>0</pre_fill_shopper_details>
                 <model>CoinGatePaymentFacade</model>
                 <order_status>pending_payment</order_status>
                 <title>Bitcoin and Altcoins via CoinGate</title>
