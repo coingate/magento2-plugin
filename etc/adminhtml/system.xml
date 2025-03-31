@@ -33,7 +33,7 @@
                 <field id="pre_fill_shopper_details" translate="label" type="select" sortOrder="45"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enable transfer of shopper billing details to payment processor</label>
-                    <comment>When enabled, this plugin will collect and securely transfer shopper billing information (e.g. name, address, email) to the configured payment processor during checkout for the purposes of payment processing, fraud prevention, and compliance. Enabling this option also helps enhance the shopper's experience by pre-filling required fields — including the Travel Rule form — during checkout, making the process faster and smoother.</comment>
+                    <comment>When enabled, this plugin will collect and securely transfer shopper billing information (e.g. name, address, email) to the configured payment processor during checkout for the purposes of payment processing, fraud prevention, and compliance. Enabling this option also helps enhance the shopper's experience by pre-filling required fields during checkout, making the process faster and smoother.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="sandbox_mode" translate="label" type="select" sortOrder="50"
