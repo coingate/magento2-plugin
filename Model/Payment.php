@@ -229,8 +229,6 @@ class Payment
             'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
         ];
 
-        $params['purchaser_email'] = $order->getCustomerEmail();
-
         if ($this->configManagement->isPreFillShopperDetails()) {
             $params['shopper'] = $this->getShopperInfo($order);
         }
