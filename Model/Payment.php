@@ -45,7 +45,7 @@ class Payment
     /**
      * @var array
      */
-    private const STATUSES_FOR_CANSEL = [
+    private const STATUSES_FOR_CANCEL = [
         'invalid',
         'expired',
         'canceled',
@@ -159,7 +159,7 @@ class Payment
                 $orderConfig = $order->getConfig();
                 $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
                 $this->orderRepository->save($order);
-            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANSEL)) {
+            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANCEL)) {
                 $this->orderManagement->cancel($cgOrder->order_id);
             }
         } catch (Exception $exception) {
