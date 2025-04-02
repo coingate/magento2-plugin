@@ -17,6 +17,7 @@ use CoinGate\Resources\CreateOrder;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -24,7 +25,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Store\Model\StoreManagerInterface;
 use CoinGate\Merchant\Model\Ui\ConfigProvider;
-use Magento\Framework\App\ProductMetadataInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -60,7 +60,7 @@ class Payment
     private ConfigManagement $configManagement;
     private OrderRepository $orderRepository;
     private LoggerInterface $logger;
-    private ProductMetadataInterface $metadata;
+    private EventManagerInterface $eventManager;
 
     /**
      * @param UrlInterface $urlBuilder
@@ -70,7 +70,7 @@ class Payment
      * @param ConfigManagement $configManagement
      * @param OrderRepository $orderRepository
      * @param LoggerInterface $logger
-     * @param ProductMetadataInterface $metadata
+     * @param EventManagerInterface $eventManager
      */
     public function __construct(
         UrlInterface $urlBuilder,
@@ -80,7 +80,7 @@ class Payment
         ConfigManagement $configManagement,
         OrderRepository $orderRepository,
         LoggerInterface $logger,
-        ProductMetadataInterface $metadata
+        EventManagerInterface $eventManager
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
@@ -89,7 +89,7 @@ class Payment
         $this->configManagement = $configManagement;
         $this->orderRepository = $orderRepository;
         $this->logger = $logger;
-        $this->metadata = $metadata;
+        $this->eventManager = $eventManager;
     }
 
     /**
@@ -159,6 +159,8 @@ class Payment
                 $orderConfig = $order->getConfig();
                 $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
                 $this->orderRepository->save($order);
+
+                $this->eventManager->dispatch('coingate_merchant_callback_send', ['order' => $order]);
             } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANCEL)) {
                 $this->orderManagement->cancel($cgOrder->order_id);
             }
