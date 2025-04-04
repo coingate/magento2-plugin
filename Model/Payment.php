@@ -60,7 +60,7 @@ class Payment
      */
     private const STATUSES_FOR_REFUND = [
         'refunded',
-        'partial_refunded',
+        'partially_refunded',
     ];
 
     private UrlInterface $urlBuilder;
