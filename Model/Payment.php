@@ -17,6 +17,7 @@ use CoinGate\Resources\CreateOrder;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderPaymentRepositoryInterface;
@@ -24,8 +25,11 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Store\Model\StoreManagerInterface;
 use CoinGate\Merchant\Model\Ui\ConfigProvider;
-use Magento\Framework\App\ProductMetadataInterface;
 use Psr\Log\LoggerInterface;
+
+use Magento\Sales\Model\Order\CreditmemoFactory;
+use Magento\Sales\Model\Service\CreditmemoService;
+use Magento\Framework\DB\TransactionFactory;
 
 /**
  * Class Payment
@@ -45,11 +49,18 @@ class Payment
     /**
      * @var array
      */
-    private const STATUSES_FOR_CANSEL = [
+    private const STATUSES_FOR_CANCEL = [
         'invalid',
         'expired',
         'canceled',
+    ];
+
+    /**
+     * @var array
+     */
+    private const STATUSES_FOR_REFUND = [
         'refunded',
+        'partially_refunded',
     ];
 
     private UrlInterface $urlBuilder;
@@ -60,7 +71,11 @@ class Payment
     private ConfigManagement $configManagement;
     private OrderRepository $orderRepository;
     private LoggerInterface $logger;
-    private ProductMetadataInterface $metadata;
+    private EventManagerInterface $eventManager;
+
+    private CreditmemoFactory $creditmemoFactory;
+    private CreditmemoService $creditmemoService;
+    private TransactionFactory $transactionFactory;
 
     /**
      * @param UrlInterface $urlBuilder
@@ -70,7 +85,11 @@ class Payment
      * @param ConfigManagement $configManagement
      * @param OrderRepository $orderRepository
      * @param LoggerInterface $logger
-     * @param ProductMetadataInterface $metadata
+     * @param EventManagerInterface $eventManager
+     * @param CreditmemoFactory $creditmemoFactory
+     * @param CreditmemoService $creditmemoService
+     * @param TransactionFactory $transactionFactory
+     * @param InvoiceRepository $invoiceRepository
      */
     public function __construct(
         UrlInterface $urlBuilder,
@@ -80,7 +99,10 @@ class Payment
         ConfigManagement $configManagement,
         OrderRepository $orderRepository,
         LoggerInterface $logger,
-        ProductMetadataInterface $metadata
+        EventManagerInterface $eventManager,
+        CreditmemoFactory $creditmemoFactory,
+        CreditmemoService $creditmemoService,
+        TransactionFactory $transactionFactory,
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->storeManager = $storeManager;
@@ -89,7 +111,10 @@ class Payment
         $this->configManagement = $configManagement;
         $this->orderRepository = $orderRepository;
         $this->logger = $logger;
-        $this->metadata = $metadata;
+        $this->eventManager = $eventManager;
+        $this->creditmemoFactory = $creditmemoFactory;
+        $this->creditmemoService = $creditmemoService;
+        $this->transactionFactory = $transactionFactory;
     }
 
     /**
@@ -155,12 +180,11 @@ class Payment
             }
 
             if ($cgOrder->status === self::PAID_STATUS) {
-                $order->setState(Order::STATE_PROCESSING);
-                $orderConfig = $order->getConfig();
-                $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
-                $this->orderRepository->save($order);
-            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANSEL)) {
+                $this->processOrderPaid($order);
+            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_CANCEL)) {
                 $this->orderManagement->cancel($cgOrder->order_id);
+            } elseif (in_array($cgOrder->status, self::STATUSES_FOR_REFUND)) {
+                $this->processOrderRefund($order);
             }
         } catch (Exception $exception) {
             $this->logger->critical($exception);
@@ -182,6 +206,42 @@ class Payment
 
         return $payment->getMethod() === ConfigProvider::CODE;
     }
+
+    /**
+     * @param Order $order
+     *
+     * @return void
+     */
+    private function processOrderPaid(Order $order): void
+    {
+        $order->setState(Order::STATE_PROCESSING);
+        $orderConfig = $order->getConfig();
+        $order->setStatus($orderConfig->getStateDefaultStatus(Order::STATE_PROCESSING));
+        $this->orderRepository->save($order);
+
+        $this->eventManager->dispatch('coingate_merchant_callback_send', ['order' => $order]);
+    }
+
+    /**
+     * @param Order $order
+     *
+     * @return void
+     */
+    private function processOrderRefund(Order $order): void
+    {
+        if (!$order->hasInvoices()) {
+            throw new Exception('Order #' . $order->getId() . ' has no invoices');
+        }
+
+        foreach ($order->getInvoiceCollection() as $invoice) {
+            $creditmemo = $this->creditmemoFactory->createByInvoice($invoice);
+            $creditmemo->setRefundRequested(true);
+            $creditmemo->setOfflineRequested(true);
+            $this->creditmemoService->refund($creditmemo);
+            $this->transactionFactory->create()->addObject($creditmemo)->save();
+        }
+    }
+
 
     /**
      * Get Http CoinGate Client
@@ -214,7 +274,6 @@ class Payment
             'order_id' => $order->getIncrementId(),
             'price_amount' => number_format((float) $order->getGrandTotal(), 2, '.', ''),
             'price_currency' => $order->getOrderCurrencyCode(),
-            'receive_currency' => $this->configManagement->getReceiveCurrency(),
             'callback_url' => $this->urlBuilder->getUrl(
                 'coingate/payment/callback',
                 [
@@ -230,10 +289,48 @@ class Payment
             'token' => $payment->getAdditionalInformation(self::COINGATE_ORDER_TOKEN_KEY)
         ];
 
-        if ($this->configManagement->isPreFillEmail()) {
-            $params['purchaser_email'] = $order->getCustomerEmail();
+        if ($this->configManagement->isPreFillShopperDetails()) {
+            $params['shopper'] = $this->getShopperInfo($order);
         }
 
         return $params;
+    }
+
+    /**
+     * @param OrderInterface $order
+     *
+     * @return array
+     */
+    private function getShopperInfo(OrderInterface $order): array
+    {
+        $billingAddress = $order->getBillingAddress();
+        $isBusiness = !empty($billingAddress->getCompany()) || !empty($billingAddress->getVatId());
+        $street = $billingAddress->getStreet()[0] ?? '';
+
+        $shopper = [
+            'type' => $isBusiness ? 'business' : 'personal',
+            'ip_address' => $order->getRemoteIp(),
+            'email' => $order->getCustomerEmail(),
+            'first_name' => $order->getCustomerFirstname(),
+            'last_name' => $order->getCustomerLastname(),
+            'date_of_birth' => $order->getCustomerDob() ? date('Y-m-d', strtotime($order->getCustomerDob())) : null,
+        ];
+
+        if ($isBusiness) {
+            $shopper['company_details'] = [
+                'name' => $billingAddress->getCompany(),
+                'address' => $street,
+                'postal_code' => $billingAddress->getPostcode(),
+                'city' => $billingAddress->getCity(),
+                'country' => $billingAddress->getCountryId(),
+            ];
+        } else {
+            $shopper['residence_address'] = $street;
+            $shopper['residence_postal_code'] = $billingAddress->getPostcode();
+            $shopper['residence_city'] = $billingAddress->getCity();
+            $shopper['residence_country'] = $billingAddress->getCountryId();
+        }
+
+        return $shopper;
     }
 }

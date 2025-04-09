@@ -7,10 +7,9 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Framework\App\CsrfAwareActionInterface;
-use Magento\Framework\Serialize\SerializerInterface;
 use Laminas\Http\Response;
 use Laminas\Http\AbstractMessage;
 
@@ -45,31 +44,23 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
     private RequestInterface $request;
     private Order $order;
     private CoinGatePayment $coingatePayment;
-    private SerializerInterface $serializer;
-    private EventManagerInterface $eventManager;
 
     /**
      * @param Order $order
      * @param CoinGatePayment $coingatePayment
      * @param RequestInterface $request
      * @param ResponseInterface $response
-     * @param SerializerInterface $serializer
-     * @param EventManagerInterface $eventManager
      */
     public function __construct(
         Order $order,
         CoinGatePayment $coingatePayment,
         RequestInterface $request,
         ResponseInterface $response,
-        SerializerInterface $serializer,
-        EventManagerInterface $eventManager
     ) {
         $this->order = $order;
         $this->coingatePayment = $coingatePayment;
         $this->request = $request;
         $this->response = $response;
-        $this->serializer = $serializer;
-        $this->eventManager = $eventManager;
     }
 
     /**
@@ -103,7 +94,7 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
         $payment = $order->getPayment();
         $token = $this->request->getParam(self::TOKEN_KEY) ?? '';
 
-        if (!$token || $token !== $payment->getAdditionalInformation(CoinGatePayment::COINGATE_ORDER_TOKEN_KEY)) {
+        if (!$this->isTokenValid($payment, preg_replace('/\s+/', '', $token))) {
             return $this->response->setStatusHeader(
                 Response::STATUS_CODE_422,
                 AbstractMessage::VERSION_11,
@@ -119,9 +110,21 @@ class Callback implements HttpPostActionInterface, CsrfAwareActionInterface
             );
         }
 
-        $this->eventManager->dispatch('coingate_merchant_callback_send', ['order' => $order]);
-
         return $this->response->setStatusHeader(Response::STATUS_CODE_200, AbstractMessage::VERSION_11);
+    }
+
+    /**
+     * Validate if the provided token is invalid.
+     *
+     * @param Payment $payment The payment object associated with the order.
+     * @param string $token The token to validate.
+     * @return bool True if the token is invalid, false otherwise.
+     */
+    private function isTokenValid(Payment $payment, string $token): bool
+    {
+        $payment_token = $payment->getAdditionalInformation(CoinGatePayment::COINGATE_ORDER_TOKEN_KEY);
+
+        return !empty($token) && hash_equals($payment_token, $token);
     }
 
     /**

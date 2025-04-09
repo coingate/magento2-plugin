@@ -56,7 +56,7 @@ define([
                 storage.post(
                     url.build('rest/V1/coingate/place_order'),
                     false
-                ).success(function (response) {
+                ).then(function (response) {
                     if (response.status) {
                         window.location.replace(response.payment_url);
                     } else {

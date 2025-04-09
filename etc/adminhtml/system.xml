@@ -14,9 +14,6 @@
         <section id="payment">
             <group id="coingate_merchant" translate="label" type="text" sortOrder="88" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Bitcoin and Altcoins via CoinGate</label>
-                <comment>
-                    <![CDATA[Not working? <a href="https://developer.coingate.com/docs/issues" target="_blank">View common issues</a> or contact <a href="mailto:support@coingate.com">support@coingate.com</a>]]>
-                </comment>
                 <field id="active" translate="label" type="select" sortOrder="10"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Enabled</label>
@@ -26,20 +23,14 @@
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Title</label>
                 </field>
-                <field id="api_auth_token" translate="label" type="text" sortOrder="30"
+                <field id="api_auth_token" translate="label" type="password" sortOrder="30"
                        showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API Auth Token</label>
                 </field>
-                <field id="receive_currency" translate="label" type="select" sortOrder="40"
+                <field id="pre_fill_shopper_details" translate="label" type="select" sortOrder="45"
                        showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Receive Currency</label>
-                    <source_model>CoinGate\Merchant\Model\Source\Receivecurrencies</source_model>
-                    <comment>Currency you want to receive when making withdrawal at CoinGate.</comment>
-                </field>
-                <field id="pre_fill_email" translate="label" type="select" sortOrder="45"
-                       showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Pre-fill CoinGate invoice email</label>
-                    <comment>When enabled, customers email will be passed to CoinGate's invoice</comment>
+                    <label>Transfer shopper billing details to payment processor</label>
+                    <comment>When enabled, this plugin will collect and securely transfer shopper billing information (e.g. name, address, email) to the configured payment processor during checkout for the purposes of payment processing, fraud prevention, and compliance. Enabling this option also helps enhance the shopper's experience by pre-filling required fields during checkout, making the process faster and smoother.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="sandbox_mode" translate="label" type="select" sortOrder="50"
